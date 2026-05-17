@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EDEN — Christian Stories</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --gold: #C9A84C;
+      --gold-light: #F0D080;
+      --bg-deep: #0E0828;
+      --border-purple: #2A1A6A;
+    }
+    html, body { min-height: 100%; background: var(--bg-deep); color: #fff; font-family: 'Inter', sans-serif; font-weight: 300; padding-bottom: 90px; }
+
+    /* LANG SCREEN */
+    #lang-screen {
+      position: fixed; inset: 0;
+      background: radial-gradient(ellipse at center, #2A1B6A 0%, #160D42 55%, #0E0828 100%);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999;
+      transition: opacity 0.6s ease, visibility 0.6s ease;
+    }
+    #lang-screen.hidden { opacity: 0; visibility: hidden; }
+    .lang-inner { text-align: center; padding: 2rem; position: relative; z-index: 2; }
+    .lang-logo { font-family: 'Cinzel', serif; font-size: clamp(40px,8vw,64px); font-weight: 400; letter-spacing: 16px; color: var(--gold); margin-bottom: 12px; }
+    .lang-line { width: 48px; height: 0.5px; background: linear-gradient(90deg,transparent,var(--gold),transparent); margin: 0 auto 2.5rem; }
+    .lang-q { font-size: 11px; color: rgba(180,160,224,0.8); letter-spacing: 5px; text-transform: uppercase; margin-bottom: 2rem; }
+    .lang-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .lang-btn { padding: 12px 30px; border-radius: 30px; font-size: 11px; font-family: 'Inter',sans-serif; letter-spacing: 4px; cursor: pointer; text-transform: uppercase; border: 0.5px solid var(--border-purple); background: transparent; color: rgba(160,140,200,0.8); transition: all 0.2s; }
+    .lang-btn:hover, .lang-btn.active { background: linear-gradient(135deg,var(--gold),var(--gold-light)); color: #160D42; border: none; font-weight: 500; }
+    .cross { position: absolute; pointer-events: none; }
+    .cross::before, .cross::after { content:''; position:absolute; background:var(--gold); opacity:0.08; }
+    .cross::before { width:0.5px; height:32px; left:50%; top:0; }
+    .cross::after  { width:32px; height:0.5px; left:0; top:50%; }
+    .c-tl{top:40px;left:50px;} .c-tr{top:40px;right:50px;} .c-bl{bottom:40px;left:50px;} .c-br{bottom:40px;right:50px;}
+
+    /* NAV */
+    nav { position:sticky; top:0; z-index:100; background:rgba(14,8,40,0.92); backdrop-filter:blur(12px); border-bottom:0.5px solid var(--border-purple); padding:0 1.5rem; height:54px; display:flex; align-items:center; justify-content:space-between; }
+    .nav-logo { font-family:'Cinzel',serif; font-size:18px; font-weight:400; letter-spacing:5px; color:var(--gold); text-decoration:none; }
+    .nav-right { display:flex; align-items:center; gap:10px; }
+    .nav-icon { width:32px; height:32px; border-radius:50%; background:var(--bg-deep); border:0.5px solid var(--border-purple); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:border-color 0.2s; text-decoration:none; }
+    .nav-icon:hover { border-color:var(--gold); }
+    .nav-icon svg { width:15px; height:15px; stroke:rgba(160,140,200,0.7); fill:none; stroke-width:1.5; }
+    .nav-avatar { width:32px; height:32px; border-radius:50%; border:1.5px solid var(--gold); object-fit:cover; cursor:pointer; }
+    .nav-avatar-placeholder { width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,#2A1870,#4A2A98); border:1.5px solid var(--gold); display:flex; align-items:center; justify-content:center; font-family:'Cinzel',serif; font-size:12px; color:var(--gold); cursor:pointer; text-decoration:none; }
+
+    /* LANG SWITCH MINI */
+    .lang-mini-overlay { position:fixed; inset:0; z-index:300; display:none; }
+    .lang-mini-overlay.open { display:block; }
+    .lang-mini-popup { position:fixed; top:62px; right:1.5rem; background:#160D42; border:0.5px solid var(--border-purple); border-radius:12px; padding:0.8rem; display:flex; flex-direction:column; gap:6px; z-index:301; min-width:140px; box-shadow:0 8px 32px rgba(0,0,0,0.4); }
+    .lang-mini-btn { padding:9px 16px; border-radius:8px; font-size:11px; font-family:'Inter',sans-serif; letter-spacing:2px; cursor:pointer; text-transform:uppercase; border:0.5px solid transparent; background:transparent; color:rgba(160,140,200,0.8); text-align:left; transition:all 0.2s; display:flex; align-items:center; gap:8px; }
+    .lang-mini-btn:hover { border-color:rgba(201,168,76,0.3); color:#fff; }
+    .lang-mini-btn.active { background:rgba(201,168,76,0.1); border-color:var(--gold); color:var(--gold); }
+    .lang-mini-flag { font-size:14px; }
+
+    /* SEARCH */
+    .search-bar { background:rgba(14,8,40,0.8); border-bottom:0.5px solid var(--border-purple); padding:0.85rem 1.5rem; }
+    .search-row { display:flex; gap:8px; align-items:center; }
+    .search-wrap { position:relative; flex:1; }
+    .search-wrap svg { position:absolute; left:13px; top:50%; transform:translateY(-50%); width:15px; height:15px; stroke:rgba(100,80,160,0.8); fill:none; stroke-width:1.5; }
+    .search-wrap input { width:100%; background:var(--bg-deep); border:0.5px solid var(--border-purple); border-radius:30px; padding:10px 16px 10px 38px; font-size:12px; color:rgba(192,170,238,0.9); font-family:'Inter',sans-serif; outline:none; font-weight:300; transition:border-color 0.2s; }
+    .search-wrap input:focus { border-color:var(--gold); }
+    .search-wrap input::placeholder { color:rgba(100,80,160,0.6); }
+    .lang-filters { display:flex; gap:6px; }
+    .lang-filter { padding:8px 16px; border-radius:8px; font-size:10px; letter-spacing:1px; cursor:pointer; border:0.5px solid var(--border-purple); background:var(--bg-deep); color:rgba(140,120,180,0.8); font-family:'Inter',sans-serif; text-transform:uppercase; transition:all 0.2s; }
+    .lang-filter.on { border-color:var(--gold); color:var(--gold); }
+
+    /* HERO */
+    .hero { background:radial-gradient(ellipse at center,#2E1E72 0%,#1B1147 55%,#130C3A 100%); padding:3.5rem 1.5rem 3rem; text-align:center; position:relative; overflow:hidden; }
+    .hero-blob { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:500px; height:220px; background:#3A2480; border-radius:50%; opacity:0.35; pointer-events:none; filter:blur(50px); }
+    .hero-content { position:relative; z-index:2; }
+    .hero-title { font-family:'Cinzel',serif; font-size:clamp(36px,7vw,64px); font-weight:400; letter-spacing:clamp(8px,2vw,18px); color:var(--gold); margin-bottom:2rem; animation:fadeUp 0.8s ease both; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+    .hero-btns { display:flex; gap:14px; justify-content:center; flex-wrap:wrap; animation:fadeUp 0.8s ease 0.15s both; }
+    .btn-outline { background:transparent; color:#fff; border:1px solid rgba(255,255,255,0.45); padding:13px 30px; border-radius:6px; font-size:10px; font-family:'Inter',sans-serif; letter-spacing:3px; cursor:pointer; text-transform:uppercase; transition:all 0.2s; }
+    .btn-outline:hover { border-color:var(--gold); color:var(--gold); }
+
+    /* GENRES */
+    .genres-section { padding:1.2rem 1.5rem 0.6rem; background:radial-gradient(ellipse at top,#221560 0%,#1B1147 100%); }
+    .section-label { font-size:9px; color:rgba(140,120,180,0.7); letter-spacing:4px; text-transform:uppercase; margin-bottom:0.8rem; }
+    .genres { display:flex; gap:8px; flex-wrap:wrap; }
+    .genre-btn { padding:7px 16px; border-radius:24px; font-size:10px; letter-spacing:0.5px; cursor:pointer; border:0.5px solid var(--border-purple); background:transparent; color:rgba(160,140,200,0.8); font-family:'Inter',sans-serif; white-space:nowrap; transition:all 0.2s; }
+    .genre-btn:hover, .genre-btn.on { border-color:var(--gold); color:var(--gold); }
+
+    /* BOOKS */
+    .books-section { padding:1.2rem 1.5rem 2rem; background:radial-gradient(ellipse at top,#221560 0%,#1B1147 100%); }
+    .sec-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; }
+    .sec-title { font-family:'Cinzel',serif; font-size:14px; font-weight:400; color:#fff; letter-spacing:1px; }
+    .sec-link { font-size:10px; color:var(--gold); cursor:pointer; text-decoration:none; transition:opacity 0.2s; }
+    .books-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:12px; }
+    .book-card { border-radius:12px; overflow:hidden; cursor:pointer; border:0.5px solid var(--border-purple); transition:border-color 0.2s,transform 0.2s; }
+    .book-card:hover { border-color:rgba(201,168,76,0.4); transform:translateY(-2px); }
+    .book-cover { height:160px; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; }
+    .book-cover img { width:100%; height:100%; object-fit:cover; }
+    .book-cover-placeholder { width:44px; height:60px; border:0.5px solid rgba(201,168,76,0.25); border-radius:2px; display:flex; align-items:center; justify-content:center; }
+    .book-cover-placeholder svg { width:20px; height:20px; stroke:rgba(201,168,76,0.3); fill:none; stroke-width:1.5; }
+    .cover-1{background:linear-gradient(145deg,#2A1870,#3E2A98);}
+    .cover-2{background:linear-gradient(145deg,#0C1E1A,#163430);}
+    .cover-3{background:linear-gradient(145deg,#260E38,#3E1858);}
+    .cover-4{background:linear-gradient(145deg,#161640,#222260);}
+    .cover-5{background:linear-gradient(145deg,#1A1008,#2E1E10);}
+    .cover-6{background:linear-gradient(145deg,#0A1A20,#102A38);}
+    .lang-badge { position:absolute; top:8px; right:8px; background:var(--gold); color:#160D42; font-size:8px; padding:3px 9px; border-radius:12px; font-weight:600; letter-spacing:1px; }
+    .new-badge { position:absolute; top:8px; left:8px; background:rgba(201,168,76,0.18); border:0.5px solid rgba(201,168,76,0.55); color:var(--gold-light); font-size:8px; padding:3px 9px; border-radius:12px; }
+    .book-body { padding:10px 12px; background:rgba(18,10,56,0.95); }
+    .book-title { font-size:12px; color:#fff; margin-bottom:6px; line-height:1.4; font-weight:400; }
+    .book-meta { display:flex; justify-content:space-between; align-items:center; font-size:9px; color:rgba(255,255,255,0.85); }
+    .genre-tag { background:rgba(26,18,80,0.9); color:#fff; font-size:8px; padding:2px 8px; border-radius:10px; }
+
+    /* LIBRARY BAR */
+    .library-bar { position:fixed; bottom:0; left:0; right:0; z-index:50; border-top:0.5px solid var(--border-purple); background:rgba(14,8,40,0.98); backdrop-filter:blur(12px); padding:1rem 1.5rem; display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; cursor:pointer; transition:background 0.2s; }
+    .library-bar:hover { background:rgba(22,13,66,0.99); }
+    .lib-left { display:flex; align-items:center; gap:12px; }
+    .lib-icon { width:34px; height:34px; border-radius:50%; background:var(--bg-deep); border:0.5px solid rgba(201,168,76,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .lib-icon svg { width:16px; height:16px; fill:none; stroke:var(--gold); stroke-width:1.5; }
+    .lib-name { font-family:'Cinzel',serif; font-size:12px; color:var(--gold); letter-spacing:2px; margin-bottom:2px; }
+    .lib-count { font-size:10px; color:#fff; font-weight:300; }
+    .lib-progress { min-width:160px; }
+    .prog-label { font-size:9px; color:#fff; display:flex; justify-content:space-between; margin-bottom:6px; }
+    .prog-bar { height:2px; background:var(--border-purple); border-radius:2px; overflow:hidden; }
+    .prog-fill { height:100%; background:linear-gradient(90deg,var(--gold),var(--gold-light)); border-radius:2px; }
+
+    /* SIGN IN MODAL */
+    .modal-overlay { position:fixed; inset:0; background:rgba(10,6,30,0.85); backdrop-filter:blur(6px); z-index:200; display:none; align-items:center; justify-content:center; padding:1.5rem; }
+    .modal-overlay.open { display:flex; }
+    .modal { background:#160D42; border:0.5px solid var(--border-purple); border-radius:16px; padding:2rem; max-width:340px; width:100%; text-align:center; }
+    .modal-logo { font-family:'Cinzel',serif; font-size:28px; color:var(--gold); letter-spacing:8px; margin-bottom:1.5rem; }
+    .modal-title { font-size:14px; color:#fff; margin-bottom:0.6rem; font-weight:400; }
+    .modal-sub { font-size:11px; color:rgba(255,255,255,0.5); margin-bottom:2rem; line-height:1.6; }
+    .google-btn { display:flex; align-items:center; justify-content:center; gap:10px; width:100%; padding:13px; border-radius:8px; background:#fff; color:#333; font-size:13px; font-family:'Inter',sans-serif; font-weight:500; cursor:pointer; border:none; transition:opacity 0.2s; }
+    .google-btn:hover { opacity:0.9; }
+    .google-btn svg { width:18px; height:18px; }
+    .modal-close { margin-top:1.2rem; font-size:11px; color:rgba(160,140,200,0.6); cursor:pointer; letter-spacing:1px; }
+    .modal-close:hover { color:var(--gold); }
+
+    footer { background:var(--bg-deep); border-top:0.5px solid var(--border-purple); padding:1.5rem; text-align:center; font-size:10px; color:rgba(140,120,180,0.5); letter-spacing:1px; }
+    ::-webkit-scrollbar { width:4px; }
+    ::-webkit-scrollbar-track { background:var(--bg-deep); }
+    ::-webkit-scrollbar-thumb { background:var(--border-purple); border-radius:2px; }
+  </style>
+</head>
+<body>
+
+  <!-- LANG SCREEN -->
+  <div id="lang-screen">
+    <div class="cross c-tl"></div><div class="cross c-tr"></div>
+    <div class="cross c-bl"></div><div class="cross c-br"></div>
+    <div class="lang-inner">
+      <div class="lang-logo">EDEN</div>
+      <div class="lang-line"></div>
+      <div class="lang-q">Choose your language</div>
+      <div class="lang-btns">
+        <button class="lang-btn" onclick="chooseLang('fr')">Français</button>
+        <button class="lang-btn" onclick="chooseLang('es')">Español</button>
+        <button class="lang-btn" onclick="chooseLang('en')">English</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN SITE -->
+  <div id="site" style="display:none;">
+
+    <nav>
+      <a class="nav-logo" href="#">EDEN</a>
+      <div class="nav-right">
+        <div class="nav-icon" onclick="toggleLangPopup()" title="Langue" id="lang-planet-btn">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        </div>
+        <div class="nav-icon" onclick="toggleNotifPanel()" title="Notifications" id="bell-btn" style="position:relative;">
+          <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <div id="notif-dot" style="display:none;position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;background:#C9A84C;border:1.5px solid #0E0828;"></div>
+        </div>
+        <div id="nav-user-area">
+          <div class="nav-icon" onclick="openSignIn()" title="Se connecter">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- NOTIFICATION PANEL -->
+    <div style="position:fixed;inset:0;z-index:149;display:none;" id="notif-overlay" onclick="closeNotifPanel()"></div>
+    <div id="notif-panel" style="position:fixed;top:62px;right:1.5rem;width:300px;background:#0D0A22;border:0.5px solid #2A1A6A;border-radius:12px;z-index:150;display:none;box-shadow:0 8px 32px rgba(0,0,0,0.5);overflow:hidden;">
+      <div style="padding:1rem 1.2rem;border-bottom:0.5px solid #2A1A6A;display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-family:Cinzel,serif;font-size:11px;letter-spacing:3px;color:#C9A84C;text-transform:uppercase;" id="notif-panel-title">Notifications</span>
+        <a href="profil.html" style="font-size:9px;color:rgba(160,140,200,0.6);letter-spacing:1px;text-decoration:none;" id="notif-settings-link">Paramètres →</a>
+      </div>
+      <div id="notif-list" style="max-height:320px;overflow-y:auto;">
+        <div id="notif-empty" style="padding:2rem 1.2rem;text-align:center;font-size:12px;color:rgba(255,255,255,0.3);line-height:1.7;">
+          Aucune notification pour l'instant.
+        </div>
+      </div>
+    </div>
+
+    <!-- LANG MINI POPUP -->
+    <div class="lang-mini-overlay" id="lang-mini-overlay" onclick="closeLangPopup()"></div>
+    <div class="lang-mini-popup" id="lang-mini-popup" style="display:none;">
+      <button class="lang-mini-btn" id="lmp-fr" onclick="switchLang('fr')"><span class="lang-mini-flag">🇫🇷</span> Français</button>
+      <button class="lang-mini-btn" id="lmp-es" onclick="switchLang('es')"><span class="lang-mini-flag">🇪🇸</span> Español</button>
+      <button class="lang-mini-btn" id="lmp-en" onclick="switchLang('en')"><span class="lang-mini-flag">🇬🇧</span> English</button>
+    </div>
+
+    <div class="search-bar">
+      <div class="search-row">
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="search-input" oninput="applyFilters()"/>
+        </div>
+        <div class="lang-filters">
+          <button class="lang-filter on" id="lf-all" onclick="filterLang('all')">Tous</button>
+          <button class="lang-filter" id="lf-fr" onclick="filterLang('fr')">FR</button>
+          <button class="lang-filter" id="lf-es" onclick="filterLang('es')">ES</button>
+          <button class="lang-filter" id="lf-en" onclick="filterLang('en')">EN</button>
+        </div>
+      </div>
+    </div>
+
+    <section class="hero">
+      <div class="hero-blob"></div>
+      <div class="hero-content">
+        <h1 class="hero-title">EDEN</h1>
+        <div class="hero-btns">
+          <button class="btn-outline" id="btn-read" onclick="document.querySelector('.books-section').scrollIntoView({behavior:'smooth'})">Commencer à lire</button>
+          <button class="btn-outline" id="btn-library" onclick="goToLibrary()">Ma bibliothèque</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="genres-section">
+      <div class="section-label" id="genres-label">Genres</div>
+      <div class="genres" id="genres">
+        <button class="genre-btn on" onclick="filterGenre(this,'all')" id="g-all">Tous</button>
+        <button class="genre-btn" onclick="filterGenre(this,'fiction')" id="g-fiction">Fiction</button>
+        <button class="genre-btn" onclick="filterGenre(this,'nonfiction')" id="g-nonfiction">Non-fiction</button>
+        <button class="genre-btn" onclick="filterGenre(this,'temoignage')" id="g-temoignage">Témoignage</button>
+        <button class="genre-btn" onclick="filterGenre(this,'romance')" id="g-romance">Romance</button>
+        <button class="genre-btn" onclick="filterGenre(this,'policier')" id="g-policier">Policier</button>
+        <button class="genre-btn" onclick="filterGenre(this,'poesie')" id="g-poesie">Poésie</button>
+        <button class="genre-btn" onclick="filterGenre(this,'jeunesse')" id="g-jeunesse">Jeunesse</button>
+      </div>
+    </section>
+
+    <section class="books-section">
+      <div class="sec-header">
+        <span class="sec-title" id="new-stories">Nouvelles histoires</span>
+      </div>
+      <div class="books-grid" id="books-grid">
+        <div style="grid-column:1/-1;text-align:center;padding:3rem;font-size:12px;color:rgba(255,255,255,0.3);">
+          <div style="width:28px;height:28px;border:2px solid #2A1A6A;border-top-color:#C9A84C;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 1rem;"></div>
+          Chargement...
+        </div>
+      </div>
+    </section>
+
+    <div class="library-bar" onclick="goToLibrary()">
+      <div class="lib-left">
+        <div class="lib-icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+        <div>
+          <div class="lib-name" id="lib-name">MA BIBLIOTHÈQUE</div>
+          <div class="lib-count" id="lib-count">0 livre</div>
+        </div>
+      </div>
+      <div class="lib-progress" id="lib-progress" style="display:none;">
+        <div class="prog-label"><span id="last-book-title">—</span><span id="last-book-ch">—</span></div>
+        <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+        <div class="prog-sub" id="last-read">—</div>
+      </div>
+    </div>
+
+    <!-- FLOATING CHAT BUTTON -->
+    <a href="feedback.html" id="chat-fab" style="position:fixed;bottom:90px;right:1.5rem;width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#C9A84C,#F0D080);display:flex;align-items:center;justify-content:center;z-index:60;box-shadow:0 4px 20px rgba(201,168,76,0.35);transition:transform 0.2s;text-decoration:none;" onmouseover="this.style.transform='scale(1.08)'" onmouseout="this.style.transform='scale(1)'">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#160D42" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    </a>
+
+    <footer><span id="footer-text">© 2026 EDEN · Tous droits réservés</span></footer>
+  </div>
+
+  <!-- SIGN IN MODAL -->
+  <div class="modal-overlay" id="signin-modal">
+    <div class="modal">
+      <div class="modal-logo">EDEN</div>
+      <div class="modal-title" id="modal-title">Rejoindre EDEN</div>
+      <div class="modal-sub" id="modal-sub">Connecte-toi pour sauvegarder ta progression et accéder à ta bibliothèque sur tous tes appareils.</div>
+      <button class="google-btn" onclick="signInWithGoogle()">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+        Continuer avec Google
+      </button>
+      <div class="modal-close" onclick="closeSignIn()">Annuler</div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, onSnapshot, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAHhYlri1s8EldAGRa7IaVr1vI_1R2Q0Lo",
+      authDomain: "eden-christianstories-36fe6.firebaseapp.com",
+      projectId: "eden-christianstories-36fe6",
+      storageBucket: "eden-christianstories-36fe6.firebasestorage.app",
+      messagingSenderId: "1051577294784",
+      appId: "1:1051577294784:web:b62cb060b6909627e8f225",
+      measurementId: "G-X9RTPEMB54"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
+
+    // Load books from Firestore in real-time
+    const covers = ['cover-1','cover-2','cover-3','cover-4','cover-5','cover-6'];
+    const bookSvg = `<svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`;
+
+    onSnapshot(collection(db, "books"), (snap) => {
+      const books = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      window._allBooks = books;
+      renderBooksGrid(books);
+    });
+
+    function renderBooksGrid(books) {
+      const grid = document.getElementById('books-grid');
+      if (!grid) return;
+      if (books.length === 0) {
+        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:3rem;font-size:12px;color:rgba(255,255,255,0.3);">Aucun livre publié pour l'instant.</div>`;
+        return;
+      }
+      grid.innerHTML = books.map((book, i) => `
+        <a class="book-card" href="livre.html?book=${book.id}" data-lang="${book.lang||'fr'}" data-genre="${book.genre||'fiction'}" style="text-decoration:none;">
+          <div class="book-cover ${covers[i % covers.length]}">
+            <span class="lang-badge">${(book.lang||'fr').toUpperCase()}</span>
+            <div class="book-cover-placeholder">${bookSvg}</div>
+          </div>
+          <div class="book-body">
+            <div class="book-title">${book.title}</div>
+            <div class="book-meta">
+              <span>Ch. ${book.chaptersCount||0}</span>
+              <span class="genre-tag">${book.genre||''}</span>
+            </div>
+          </div>
+        </a>`).join('');
+      // Re-apply current filters
+      if (window.applyFilters) window.applyFilters();
+    }
+    window._renderBooksGrid = renderBooksGrid;
+
+    // Expose functions to window
+    window._firebaseSignIn = async () => {
+      try {
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+        // Save user to Firestore if new
+        const userRef = doc(db, "users", user.uid);
+        const userSnap = await getDoc(userRef);
+        if (!userSnap.exists()) {
+          await setDoc(userRef, {
+            name: user.displayName,
+            email: user.email,
+            photo: user.photoURL,
+            lang: window._currentLang || 'fr',
+            library: [],
+            createdAt: new Date()
+          });
+        }
+        document.getElementById('signin-modal').classList.remove('open');
+      } catch(e) { console.error(e); }
+    };
+
+    window._firebaseSignOut = async () => {
+      await signOut(auth);
+    };
+
+    // Auth state listener
+    onAuthStateChanged(auth, async (user) => {
+      const navUserArea = document.getElementById('nav-user-area');
+      if (user) {
+        // Show avatar
+        const initial = user.displayName ? user.displayName[0].toUpperCase() : 'U';
+        if (user.photoURL) {
+          navUserArea.innerHTML = `<a href="profil.html" class="nav-icon" style="padding:0;overflow:hidden;"><img src="${user.photoURL}" class="nav-avatar" alt="${user.displayName}"/></a>`;
+        } else {
+          navUserArea.innerHTML = `<a href="profil.html" class="nav-avatar-placeholder">${initial}</a>`;
+        }
+        // Show admin shortcut in nav for admin only
+        if (user.email === 'windy.pilierreyes@gmail.com') {
+          const adminBtn = document.createElement('a');
+          adminBtn.href = 'admin.html';
+          adminBtn.title = 'Admin';
+          adminBtn.style.cssText = 'padding:5px 12px;border-radius:6px;background:rgba(201,168,76,0.15);border:0.5px solid rgba(201,168,76,0.4);color:#C9A84C;font-size:10px;letter-spacing:2px;text-decoration:none;font-family:Cinzel,serif;white-space:nowrap;';
+          adminBtn.textContent = 'ADMIN';
+          navUserArea.parentNode.insertBefore(adminBtn, navUserArea);
+        }
+
+        // Listen for admin replies to this user's feedback
+        const anonId = localStorage.getItem('eden-anon-id');
+        if (anonId) {
+          const q = query(collection(db, "feedback"), where("userToken", "==", anonId));
+          onSnapshot(q, snap => {
+            snap.docChanges().forEach(change => {
+              const data = change.doc.data();
+              if (data.replies && data.replies.length > 0) {
+                const lastReply = data.replies[data.replies.length - 1];
+                if (lastReply.isAdmin) {
+                  if (window.addNotification) {
+                    const t = window._t || {};
+                    window.addNotification({
+                      icon: '💬',
+                      title: t.notif_admin_reply || 'EDEN a répondu',
+                      text: lastReply.text.slice(0, 60) + (lastReply.text.length > 60 ? '...' : ''),
+                      link: 'feedback.html',
+                      type: 'chat'
+                    });
+                  }
+                }
+              }
+            });
+          });
+        }
+        // Load library info
+        try {
+          const userRef = doc(db, "users", user.uid);
+          const userSnap = await getDoc(userRef);
+          if (userSnap.exists()) {
+            const data = userSnap.data();
+            const lib = data.library || [];
+            const count = lib.length;
+            const t = window._t || {};
+            document.getElementById('lib-count').textContent = count + ' ' + (count <= 1 ? (t.book || 'livre') : (t.books || 'livres'));
+            if (lib.length > 0) {
+              const last = lib[lib.length - 1];
+              document.getElementById('lib-progress').style.display = '';
+              document.getElementById('last-book-title').textContent = last.title || '—';
+              document.getElementById('last-book-ch').textContent = last.chapter || '—';
+              document.getElementById('prog-fill').style.width = (last.progress || 0) + '%';
+              document.getElementById('last-read').textContent = last.lastRead || '—';
+            }
+          }
+        } catch(e) {}
+      } else {
+        navUserArea.innerHTML = `<div class="nav-icon" onclick="openSignIn()" title="Se connecter"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(160,140,200,0.7)" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>`;
+        document.getElementById('lib-count').textContent = '0 livre';
+        document.getElementById('lib-progress').style.display = 'none';
+      }
+    });
+  </script>
+
+  <script>
+    const translations = {
+      fr: {
+        search_placeholder:'Rechercher une histoire...',
+        filter_all:'Tous', btn_read:'Commencer à lire', btn_library:'Ma bibliothèque',
+        genres_label:'Genres', new_stories:'Nouvelles histoires',
+        lib_name:'MA BIBLIOTHÈQUE', book:'livre', books:'livres',
+        footer:'© 2026 EDEN · Tous droits réservés',
+        genres:['Tous','Fiction','Non-fiction','Témoignage','Romance','Policier','Poésie','Jeunesse'],
+        modal_title:'Rejoindre EDEN', modal_sub:'Connecte-toi pour sauvegarder ta progression et accéder à ta bibliothèque sur tous tes appareils.',
+        notif_title:'Notifications', notif_settings:'Paramètres →', notif_empty:'Aucune notification pour l\'instant.',
+        notif_admin_reply:'EDEN a répondu', notif_new_chapter:'Nouveau chapitre disponible',
+        no_results:'Aucun livre dans ce genre pour l\'instant.'
+      },
+      es: {
+        search_placeholder:'Buscar una historia...',
+        filter_all:'Todos', btn_read:'Empezar a leer', btn_library:'Mi biblioteca',
+        genres_label:'Géneros', new_stories:'Nuevas historias',
+        lib_name:'MI BIBLIOTECA', book:'libro', books:'libros',
+        footer:'© 2026 EDEN · Todos los derechos reservados',
+        genres:['Todos','Ficción','No ficción','Testimonio','Romance','Policial','Poesía','Juvenil'],
+        modal_title:'Únete a EDEN', modal_sub:'Inicia sesión para guardar tu progreso y acceder a tu biblioteca en todos tus dispositivos.',
+        notif_title:'Notificaciones', notif_settings:'Ajustes →', notif_empty:'No hay notificaciones por ahora.',
+        notif_admin_reply:'EDEN respondió', notif_new_chapter:'Nuevo capítulo disponible',
+        no_results:'No hay libros en este género por ahora.'
+      },
+      en: {
+        search_placeholder:'Search a story...',
+        filter_all:'All', btn_read:'Start reading', btn_library:'My library',
+        genres_label:'Genres', new_stories:'New stories',
+        lib_name:'MY LIBRARY', book:'book', books:'books',
+        footer:'© 2026 EDEN · All rights reserved',
+        genres:['All','Fiction','Non-fiction','Testimony','Romance','Mystery','Poetry','Youth'],
+        modal_title:'Join EDEN', modal_sub:'Sign in to save your progress and access your library on all your devices.',
+        notif_title:'Notifications', notif_settings:'Settings →', notif_empty:'No notifications yet.',
+        notif_admin_reply:'EDEN replied', notif_new_chapter:'New chapter available',
+        no_results:'No books in this genre yet.'
+      }
+    };
+
+    let _currentLang = 'fr';
+    let _activeLangFilter = 'all';
+    let _activeGenre = 'all';
+    window._currentLang = _currentLang;
+
+    function applyTranslations(lang) {
+      const t = translations[lang];
+      window._t = t;
+      document.getElementById('search-input').placeholder = t.search_placeholder;
+      document.getElementById('lf-all').textContent = t.filter_all;
+      document.getElementById('btn-read').textContent = t.btn_read;
+      document.getElementById('btn-library').textContent = t.btn_library;
+      document.getElementById('genres-label').textContent = t.genres_label;
+      document.getElementById('new-stories').textContent = t.new_stories;
+      document.getElementById('lib-name').textContent = t.lib_name;
+      document.getElementById('footer-text').textContent = t.footer;
+      document.getElementById('modal-title').textContent = t.modal_title;
+      document.getElementById('modal-sub').textContent = t.modal_sub;
+      document.getElementById('notif-panel-title').textContent = t.notif_title;
+      document.getElementById('notif-settings-link').textContent = t.notif_settings;
+      document.getElementById('notif-empty').textContent = t.notif_empty;
+      const genreBtns = document.querySelectorAll('.genre-btn');
+      genreBtns.forEach((btn,i) => { if(t.genres[i]) btn.textContent = t.genres[i]; });
+    }
+
+    function chooseLang(lang) {
+      _currentLang = lang;
+      window._currentLang = lang;
+      localStorage.setItem('eden-lang', lang);
+      document.getElementById('lang-screen').classList.add('hidden');
+      document.getElementById('site').style.display = 'block';
+      applyTranslations(lang);
+      setTimeout(() => { document.getElementById('lang-screen').style.display = 'none'; }, 650);
+    }
+
+    function filterLang(lang) {
+      _activeLangFilter = lang;
+      document.querySelectorAll('.lang-filter').forEach(b => b.classList.remove('on'));
+      document.getElementById('lf-' + lang).classList.add('on');
+      applyFilters();
+    }
+
+    function filterGenre(btn, genre) {
+      _activeGenre = genre;
+      document.querySelectorAll('.genre-btn').forEach(b => b.classList.remove('on'));
+      btn.classList.add('on');
+      applyFilters();
+      // Update section title
+      const t = window._t || {};
+      const genreNames = {
+        all: t.new_stories || 'Nouvelles histoires',
+        fiction: 'Fiction',
+        nonfiction: 'Non-fiction',
+        temoignage: t.genres?.[3] || 'Témoignage',
+        romance: 'Romance',
+        policier: t.genres?.[5] || 'Policier',
+        poesie: t.genres?.[6] || 'Poésie',
+        jeunesse: t.genres?.[7] || 'Jeunesse'
+      };
+      document.getElementById('new-stories').textContent = genreNames[genre] || genre;
+      // Scroll to books section
+      document.querySelector('.books-section').scrollIntoView({behavior:'smooth', block:'start'});
+    }
+
+    function applyFilters() {
+      const query = document.getElementById('search-input').value.toLowerCase();
+      let visible = 0;
+      document.querySelectorAll('.book-card').forEach(card => {
+        const langOk = _activeLangFilter === 'all' || card.dataset.lang === _activeLangFilter;
+        const genreOk = _activeGenre === 'all' || card.dataset.genre === _activeGenre;
+        const searchOk = !query || card.querySelector('.book-title').textContent.toLowerCase().includes(query);
+        const show = langOk && genreOk && searchOk;
+        card.style.display = show ? '' : 'none';
+        if (show) visible++;
+      });
+      // Show empty state if no results
+      let emptyEl = document.getElementById('genre-empty');
+      if (!emptyEl) {
+        emptyEl = document.createElement('div');
+        emptyEl.id = 'genre-empty';
+        emptyEl.style.cssText = 'grid-column:1/-1;text-align:center;padding:3rem 1rem;font-size:12px;color:rgba(255,255,255,0.3);line-height:1.7;';
+        document.getElementById('books-grid').appendChild(emptyEl);
+      }
+      const t = window._t || {};
+      emptyEl.style.display = visible === 0 ? 'block' : 'none';
+      emptyEl.textContent = visible === 0 ? (t.no_results || 'Aucun livre dans ce genre pour l\'instant.') : '';
+    }
+
+    function openSignIn() {
+      document.getElementById('signin-modal').classList.add('open');
+    }
+
+    function closeSignIn() {
+      document.getElementById('signin-modal').classList.remove('open');
+    }
+
+    function signInWithGoogle() {
+      if (window._firebaseSignIn) window._firebaseSignIn();
+    }
+
+    function goToLibrary() {
+      window.location.href = 'bibliotheque.html';
+    }
+
+    document.getElementById('signin-modal').addEventListener('click', e => {
+      if (e.target === document.getElementById('signin-modal')) closeSignIn();
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const saved = localStorage.getItem('eden-lang');
+      if (saved) {
+        document.getElementById('lang-screen').style.display = 'none';
+        document.getElementById('site').style.display = 'block';
+        chooseLang(saved);
+      } else {
+        document.getElementById('lang-screen').style.display = 'flex';
+        document.getElementById('site').style.display = 'none';
+      }
+    });
+
+    function toggleLangPopup() {
+      const overlay = document.getElementById('lang-mini-overlay');
+      const popup = document.getElementById('lang-mini-popup');
+      const isOpen = popup.style.display === 'flex';
+      if (isOpen) {
+        closeLangPopup();
+      } else {
+        overlay.classList.add('open');
+        popup.style.display = 'flex';
+        const cur = localStorage.getItem('eden-lang') || 'fr';
+        ['fr','es','en'].forEach(l => {
+          document.getElementById('lmp-'+l)?.classList.toggle('active', l === cur);
+        });
+      }
+    }
+
+    function closeLangPopup() {
+      document.getElementById('lang-mini-overlay').classList.remove('open');
+      document.getElementById('lang-mini-popup').style.display = 'none';
+    }
+
+    function switchLang(lang) {
+      localStorage.setItem('eden-lang', lang);
+      closeLangPopup();
+      _currentLang = lang;
+      window._currentLang = lang;
+      applyTranslations(lang);
+    }
+
+    // NOTIFICATION PANEL
+    let _notifications = [];
+
+    function toggleNotifPanel() {
+      const panel = document.getElementById('notif-panel');
+      const overlay = document.getElementById('notif-overlay');
+      const isOpen = panel.style.display === 'block';
+      if (isOpen) {
+        closeNotifPanel();
+      } else {
+        closeLangPopup();
+        panel.style.display = 'block';
+        overlay.style.display = 'block';
+        document.getElementById('notif-dot').style.display = 'none';
+        renderNotifications();
+      }
+    }
+
+    function closeNotifPanel() {
+      document.getElementById('notif-panel').style.display = 'none';
+      document.getElementById('notif-overlay').style.display = 'none';
+    }
+
+    function renderNotifications() {
+      const list = document.getElementById('notif-list');
+      const empty = document.getElementById('notif-empty');
+      const t = window._t || {};
+      if (_notifications.length === 0) {
+        empty.style.display = 'block';
+        return;
+      }
+      empty.style.display = 'none';
+      list.innerHTML = _notifications.map(n => `
+        <div style="padding:0.9rem 1.2rem;border-bottom:0.5px solid rgba(42,26,106,0.4);cursor:pointer;transition:background 0.2s;" onclick="handleNotif('${n.type}','${n.link||''}')">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+            <span style="font-size:16px;">${n.icon||'📖'}</span>
+            <span style="font-size:12px;color:#fff;font-weight:400;flex:1;">${n.title}</span>
+            ${!n.read ? '<div style="width:6px;height:6px;border-radius:50%;background:#C9A84C;flex-shrink:0;"></div>' : ''}
+          </div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.45);padding-left:26px;">${n.text}</div>
+          <div style="font-size:9px;color:rgba(255,255,255,0.25);padding-left:26px;margin-top:3px;letter-spacing:1px;">${n.time||''}</div>
+        </div>`).join('');
+    }
+
+    function handleNotif(type, link) {
+      closeNotifPanel();
+      if (link) window.location.href = link;
+    }
+
+    function addNotification(notif) {
+      _notifications.unshift({ ...notif, read: false, time: 'maintenant' });
+      document.getElementById('notif-dot').style.display = 'block';
+    }
+
+    // Listen for new chapters and chat replies from Firestore
+    function setupNotifListener(db, userId) {
+      // Listen to feedback replies for this user
+      try {
+        const { collection, query, where, onSnapshot } = window._firestoreHelpers || {};
+        if (!onSnapshot) return;
+      } catch(e) {}
+    }
+
+    window.toggleNotifPanel = toggleNotifPanel;
+    window.closeNotifPanel = closeNotifPanel;
+    window.addNotification = addNotification;
+    window.filterGenre = filterGenre;
+    window.applyFilters = applyFilters;
+    window.openSignIn = openSignIn;
+    window.closeSignIn = closeSignIn;
+    window.signInWithGoogle = signInWithGoogle;
+    window.goToLibrary = goToLibrary;
+    window.toggleLangPopup = toggleLangPopup;
+    window.closeLangPopup = closeLangPopup;
+    window.switchLang = switchLang;
+  </script>
+</body>
+</html>

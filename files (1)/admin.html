@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EDEN — Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --gold: #C9A84C; --gold-light: #F0D080; --bg-deep: #0E0828; --border-purple: #2A1A6A; }
+    html, body { min-height:100%; background:radial-gradient(ellipse at top,#1A0A3A 0%,#100820 55%,#080612 100%); color:#fff; font-family:'Inter',sans-serif; font-weight:300; padding-bottom:60px; }
+
+    nav { position:sticky; top:0; z-index:100; background:rgba(8,6,18,0.95); backdrop-filter:blur(12px); border-bottom:0.5px solid var(--border-purple); padding:0 1.5rem; height:54px; display:flex; align-items:center; justify-content:space-between; }
+    .nav-logo { font-family:'Cinzel',serif; font-size:18px; font-weight:400; letter-spacing:5px; color:var(--gold); text-decoration:none; }
+    .nav-badge { background:rgba(201,168,76,0.15); border:0.5px solid rgba(201,168,76,0.3); color:var(--gold); font-size:9px; padding:4px 10px; border-radius:10px; letter-spacing:2px; text-transform:uppercase; }
+    .nav-right { display:flex; align-items:center; gap:10px; }
+    .nav-site-link { font-size:10px; color:rgba(160,140,200,0.6); letter-spacing:2px; text-decoration:none; padding:7px 14px; border:0.5px solid var(--border-purple); border-radius:6px; transition:all 0.2s; }
+    .nav-site-link:hover { border-color:var(--gold); color:var(--gold); }
+
+    /* ACCESS DENIED */
+    #access-denied { display:none; flex-direction:column; align-items:center; justify-content:center; min-height:80vh; text-align:center; padding:2rem; gap:1.2rem; }
+    .denied-icon { width:60px; height:60px; border-radius:50%; background:rgba(224,90,90,0.1); border:0.5px solid rgba(224,90,90,0.3); display:flex; align-items:center; justify-content:center; }
+    .denied-icon svg { width:26px; height:26px; stroke:#E05A5A; fill:none; stroke-width:1.5; }
+    .denied-title { font-family:'Cinzel',serif; font-size:16px; color:#fff; letter-spacing:1px; }
+    .denied-text { font-size:12px; color:rgba(255,255,255,0.4); max-width:280px; line-height:1.7; }
+
+    /* LOADING */
+    #loading { display:flex; align-items:center; justify-content:center; min-height:80vh; }
+    .spinner { width:32px; height:32px; border:2px solid var(--border-purple); border-top-color:var(--gold); border-radius:50%; animation:spin 0.8s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    /* MAIN */
+    #main { display:none; max-width:800px; margin:0 auto; padding:2rem 1.5rem; }
+    .section-title { font-family:'Cinzel',serif; font-size:11px; letter-spacing:4px; color:var(--gold); text-transform:uppercase; margin-bottom:1.2rem; opacity:0.8; }
+
+    /* STATS ROW */
+    .stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:2rem; }
+    .stat-card { background:rgba(14,8,40,0.7); border:0.5px solid var(--border-purple); border-radius:12px; padding:1.2rem; text-align:center; }
+    .stat-num { font-family:'Cinzel',serif; font-size:28px; color:var(--gold); margin-bottom:4px; }
+    .stat-label { font-size:9px; color:rgba(255,255,255,0.4); letter-spacing:2px; text-transform:uppercase; }
+
+    /* FORM CARD */
+    .form-card { background:rgba(14,8,40,0.7); border:0.5px solid var(--border-purple); border-radius:16px; overflow:hidden; margin-bottom:1.5rem; }
+    .form-header { padding:1rem 1.5rem; border-bottom:0.5px solid var(--border-purple); display:flex; align-items:center; justify-content:space-between; }
+    .form-header-title { font-family:'Cinzel',serif; font-size:11px; letter-spacing:3px; color:var(--gold); text-transform:uppercase; opacity:0.8; }
+    .form-body { padding:1.5rem; }
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px; }
+    .form-row.full { grid-template-columns:1fr; }
+    .form-row.three { grid-template-columns:1fr 1fr 1fr; }
+    .field { display:flex; flex-direction:column; gap:6px; }
+    .field label { font-size:10px; color:rgba(160,140,200,0.6); letter-spacing:2px; text-transform:uppercase; }
+    .field input, .field select, .field textarea {
+      background:rgba(8,4,24,0.8); border:0.5px solid var(--border-purple); border-radius:6px;
+      padding:10px 12px; font-size:13px; color:#fff; font-family:'Inter',sans-serif;
+      outline:none; transition:border-color 0.2s; width:100%;
+    }
+    .field input:focus, .field select:focus, .field textarea:focus { border-color:var(--gold); }
+    .field input::placeholder, .field textarea::placeholder { color:rgba(160,140,200,0.3); }
+    .field select option { background:#160D42; }
+    .field textarea { resize:vertical; min-height:100px; line-height:1.6; }
+    .form-actions { display:flex; gap:10px; margin-top:1rem; }
+    .btn-submit { padding:11px 24px; border-radius:6px; background:linear-gradient(135deg,var(--gold),var(--gold-light)); color:#160D42; border:none; font-size:11px; font-family:'Inter',sans-serif; letter-spacing:2px; cursor:pointer; text-transform:uppercase; font-weight:500; transition:opacity 0.2s; }
+    .btn-submit:hover { opacity:0.9; }
+    .btn-cancel { padding:11px 20px; border-radius:6px; background:transparent; color:rgba(160,140,200,0.7); border:0.5px solid var(--border-purple); font-size:11px; font-family:'Inter',sans-serif; letter-spacing:2px; cursor:pointer; text-transform:uppercase; transition:all 0.2s; }
+    .btn-cancel:hover { border-color:var(--gold); color:var(--gold); }
+
+    /* COVER UPLOAD */
+    .cover-upload { border:1px dashed rgba(201,168,76,0.3); border-radius:8px; padding:1.5rem; text-align:center; cursor:pointer; transition:all 0.2s; position:relative; }
+    .cover-upload:hover { border-color:var(--gold); background:rgba(201,168,76,0.04); }
+    .cover-upload input { position:absolute; inset:0; opacity:0; cursor:pointer; }
+    .cover-upload-icon svg { width:24px; height:24px; stroke:rgba(201,168,76,0.4); fill:none; stroke-width:1.5; margin-bottom:8px; }
+    .cover-upload-text { font-size:11px; color:rgba(160,140,200,0.5); letter-spacing:1px; }
+    .cover-preview { width:80px; height:110px; border-radius:6px; object-fit:cover; border:1px solid rgba(201,168,76,0.3); margin:0 auto; display:none; }
+
+    /* BOOKS LIST */
+    .books-list { display:flex; flex-direction:column; gap:10px; }
+    .book-item { background:rgba(8,4,24,0.6); border:0.5px solid var(--border-purple); border-radius:10px; padding:1rem 1.2rem; display:flex; align-items:center; gap:1rem; transition:border-color 0.2s; }
+    .book-item:hover { border-color:rgba(201,168,76,0.3); }
+    .book-item-cover { width:40px; height:55px; border-radius:4px; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+    .book-item-cover.c1{background:linear-gradient(145deg,#2A1870,#3E2A98);}
+    .book-item-cover.c2{background:linear-gradient(145deg,#0C1E1A,#163430);}
+    .book-item-cover.c3{background:linear-gradient(145deg,#260E38,#3E1858);}
+    .book-item-cover.c4{background:linear-gradient(145deg,#161640,#222260);}
+    .book-item-cover svg { width:16px; height:16px; stroke:rgba(201,168,76,0.3); fill:none; stroke-width:1.5; }
+    .book-item-info { flex:1; min-width:0; }
+    .book-item-title { font-size:14px; color:#fff; font-weight:400; margin-bottom:4px; }
+    .book-item-meta { font-size:10px; color:rgba(255,255,255,0.4); display:flex; gap:12px; }
+    .book-item-badge { font-size:8px; padding:2px 8px; border-radius:8px; }
+    .badge-fr { background:rgba(100,120,220,0.2); color:#8899EE; }
+    .badge-es { background:rgba(220,160,60,0.2); color:#DDAA44; }
+    .badge-en { background:rgba(80,180,120,0.2); color:#66CC88; }
+    .badge-ongoing { background:rgba(100,200,100,0.15); color:#7EC87E; }
+    .badge-finished { background:rgba(201,168,76,0.15); color:var(--gold); }
+    .book-item-actions { display:flex; gap:8px; flex-shrink:0; }
+    .action-btn { width:30px; height:30px; border-radius:6px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s; border:0.5px solid var(--border-purple); background:transparent; }
+    .action-btn:hover { border-color:var(--gold); }
+    .action-btn svg { width:13px; height:13px; stroke:rgba(160,140,200,0.6); fill:none; stroke-width:1.5; }
+    .action-btn.delete:hover { border-color:#E05A5A; }
+    .action-btn.delete:hover svg { stroke:#E05A5A; }
+
+    /* CHAPTERS LIST */
+    .chapter-item { background:rgba(8,4,24,0.6); border:0.5px solid var(--border-purple); border-radius:8px; padding:0.9rem 1.2rem; display:flex; align-items:center; gap:1rem; }
+    .ch-num { font-family:'Cinzel',serif; font-size:11px; color:rgba(201,168,76,0.5); min-width:28px; }
+    .ch-info { flex:1; }
+    .ch-title-text { font-size:13px; color:#fff; font-weight:400; margin-bottom:2px; }
+    .ch-meta { font-size:10px; color:rgba(255,255,255,0.35); }
+    .ch-actions { display:flex; gap:6px; }
+
+    /* TOAST */
+    .toast { position:fixed; bottom:2rem; left:50%; transform:translateX(-50%) translateY(100px); background:#160D42; border:0.5px solid var(--gold); border-radius:10px; padding:12px 24px; font-size:12px; color:var(--gold); letter-spacing:1px; z-index:500; transition:transform 0.3s; white-space:nowrap; }
+    .toast.show { transform:translateX(-50%) translateY(0); }
+
+    /* SELECT BOOK FOR CHAPTER */
+    .book-select-item { padding:10px 12px; border-radius:6px; cursor:pointer; transition:background 0.2s; display:flex; align-items:center; gap:10px; }
+    .book-select-item:hover { background:rgba(42,26,106,0.4); }
+    .book-select-item.selected { background:rgba(201,168,76,0.1); border:0.5px solid rgba(201,168,76,0.3); border-radius:6px; }
+    .book-select-title { font-size:13px; color:#fff; }
+    .book-select-meta { font-size:10px; color:rgba(255,255,255,0.4); }
+
+    ::-webkit-scrollbar { width:4px; }
+    ::-webkit-scrollbar-track { background:var(--bg-deep); }
+    ::-webkit-scrollbar-thumb { background:var(--border-purple); border-radius:2px; }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <a class="nav-logo" href="index.html">EDEN</a>
+      <span class="nav-badge">Admin</span>
+    </div>
+    <div class="nav-right">
+      <a class="nav-site-link" href="feedback.html">💬 Messages</a>
+      <a class="nav-site-link" href="index.html">← Voir le site</a>
+    </div>
+  </nav>
+
+  <div id="loading"><div class="spinner"></div></div>
+
+  <div id="access-denied">
+    <div class="denied-icon"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+    <div class="denied-title">Accès refusé</div>
+    <div class="denied-text">Cette page est réservée à l'administratrice du site.</div>
+  </div>
+
+  <div id="main">
+
+    <!-- STATS -->
+    <div style="padding:2rem 1.5rem 0;max-width:800px;margin:0 auto;">
+      <div class="section-title">Tableau de bord</div>
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-num" id="stat-books">0</div><div class="stat-label">Livres</div></div>
+        <div class="stat-card"><div class="stat-num" id="stat-chapters">0</div><div class="stat-label">Chapitres</div></div>
+        <div class="stat-card"><div class="stat-num" id="stat-users">0</div><div class="stat-label">Lecteurs</div></div>
+      </div>
+    </div>
+
+    <div style="max-width:800px;margin:0 auto;padding:0 1.5rem;">
+
+      <!-- ADD BOOK -->
+      <div class="form-card">
+        <div class="form-header">
+          <span class="form-header-title">Ajouter un livre</span>
+        </div>
+        <div class="form-body">
+          <div class="form-row">
+            <div class="field">
+              <label>Titre du livre</label>
+              <input type="text" id="book-title" placeholder="La grâce du désert"/>
+            </div>
+            <div class="field">
+              <label>Auteure</label>
+              <input type="text" id="book-author" placeholder="Windy" value="Windy"/>
+            </div>
+          </div>
+          <div class="form-row three">
+            <div class="field">
+              <label>Langue</label>
+              <select id="book-lang">
+                <option value="fr">Français</option>
+                <option value="es">Español</option>
+                <option value="en">English</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Genre</label>
+              <select id="book-genre">
+                <option value="fiction">Fiction</option>
+                <option value="nonfiction">Non-fiction</option>
+                <option value="temoignage">Témoignage</option>
+                <option value="romance">Romance</option>
+                <option value="policier">Policier</option>
+                <option value="poesie">Poésie</option>
+                <option value="jeunesse">Jeunesse</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Statut</label>
+              <select id="book-status">
+                <option value="ongoing">En cours</option>
+                <option value="finished">Terminé</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row full">
+            <div class="field">
+              <label>Résumé</label>
+              <textarea id="book-summary" placeholder="Décris l'histoire en quelques lignes..."></textarea>
+            </div>
+          </div>
+          <div class="field" style="margin-bottom:1rem;">
+            <label>Couverture</label>
+            <div class="cover-upload" id="cover-upload-zone">
+              <input type="file" id="book-cover-file" accept="image/*" onchange="previewCover(this)"/>
+              <img class="cover-preview" id="cover-preview-img"/>
+              <div class="cover-upload-icon" id="cover-upload-placeholder">
+                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <div class="cover-upload-text">Clique pour uploader la couverture</div>
+              </div>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn-submit" onclick="addBook()">Publier le livre</button>
+            <button class="btn-cancel" onclick="clearBookForm()">Effacer</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADD CHAPTER -->
+      <div class="form-card">
+        <div class="form-header">
+          <span class="form-header-title">Ajouter un chapitre</span>
+        </div>
+        <div class="form-body">
+          <div class="form-row full" style="margin-bottom:12px;">
+            <div class="field">
+              <label>Choisir le livre</label>
+              <select id="chapter-book-select">
+                <option value="">— Sélectionner un livre —</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field">
+              <label>Titre du chapitre</label>
+              <input type="text" id="chapter-title" placeholder="Le commencement du silence"/>
+            </div>
+            <div class="field">
+              <label>Numéro du chapitre</label>
+              <input type="number" id="chapter-num" placeholder="1" min="1"/>
+            </div>
+          </div>
+          <div class="form-row full">
+            <div class="field">
+              <label>Contenu du chapitre</label>
+              <textarea id="chapter-content" placeholder="Écris le texte du chapitre ici..." style="min-height:200px;"></textarea>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn-submit" onclick="addChapter()">Publier le chapitre</button>
+            <button class="btn-cancel" onclick="clearChapterForm()">Effacer</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- BOOKS LIST -->
+      <div class="form-card">
+        <div class="form-header">
+          <span class="form-header-title">Livres publiés</span>
+        </div>
+        <div class="form-body">
+          <div class="books-list" id="admin-books-list">
+            <div style="text-align:center;padding:2rem;font-size:12px;color:rgba(255,255,255,0.3);">Aucun livre publié pour l'instant.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- EDIT MODAL -->
+  <div style="position:fixed;inset:0;background:rgba(10,6,30,0.88);backdrop-filter:blur(6px);z-index:200;display:none;align-items:center;justify-content:center;padding:1.5rem;" id="edit-modal">
+    <div style="background:#0D0A22;border:0.5px solid #2A1A6A;border-radius:16px;padding:2rem;max-width:520px;width:100%;max-height:90vh;overflow-y:auto;">
+      <div style="font-family:Cinzel,serif;font-size:11px;letter-spacing:3px;color:#C9A84C;text-transform:uppercase;margin-bottom:1.5rem;opacity:.8;">Modifier le livre</div>
+      <div class="form-row">
+        <div class="field"><label>Titre</label><input type="text" id="edit-title"/></div>
+        <div class="field"><label>Auteure</label><input type="text" id="edit-author"/></div>
+      </div>
+      <div class="form-row three">
+        <div class="field"><label>Langue</label>
+          <select id="edit-lang"><option value="fr">Français</option><option value="es">Español</option><option value="en">English</option></select>
+        </div>
+        <div class="field"><label>Genre</label>
+          <select id="edit-genre">
+            <option value="fiction">Fiction</option><option value="nonfiction">Non-fiction</option>
+            <option value="temoignage">Témoignage</option><option value="romance">Romance</option>
+            <option value="policier">Policier</option><option value="poesie">Poésie</option><option value="jeunesse">Jeunesse</option>
+          </select>
+        </div>
+        <div class="field"><label>Statut</label>
+          <select id="edit-status"><option value="ongoing">En cours</option><option value="finished">Terminé</option></select>
+        </div>
+      </div>
+      <div class="form-row full">
+        <div class="field"><label>Résumé</label><textarea id="edit-summary" style="min-height:100px;"></textarea></div>
+      </div>
+      <input type="hidden" id="edit-book-id"/>
+      <div class="form-actions">
+        <button class="btn-submit" onclick="saveEdit()">Enregistrer</button>
+        <button class="btn-cancel" onclick="closeEdit()">Annuler</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, collection, doc, getDocs, addDoc, deleteDoc, updateDoc, getCountFromServer, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAHhYlri1s8EldAGRa7IaVr1vI_1R2Q0Lo",
+      authDomain: "eden-christianstories-36fe6.firebaseapp.com",
+      projectId: "eden-christianstories-36fe6",
+      storageBucket: "eden-christianstories-36fe6.firebasestorage.app",
+      messagingSenderId: "1051577294784",
+      appId: "1:1051577294784:web:b62cb060b6909627e8f225"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // ADMIN EMAIL — change this to your email
+    const ADMIN_EMAIL = 'windy.pilierreyes@gmail.com';
+
+    const covers = ['c1','c2','c3','c4'];
+    const bookSvg = `<svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`;
+
+    let _books = [];
+
+    async function loadBooks() {
+      try {
+        const snap = await getDocs(collection(db, "books"));
+        _books = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        // If no books in Firestore yet, seed with the hardcoded ones
+        if (_books.length === 0) {
+          const seedBooks = [
+            { id:'grace-desert', title:'La grâce du désert', author:'Windy', lang:'fr', genre:'temoignage', status:'ongoing', summary:'Dans les vastes étendues arides d\'une foi mise à l\'épreuve, Marie découvre que les saisons de sécheresse spirituelle cachent souvent les plus profondes racines de la grâce.', chaptersCount:1 },
+            { id:'jardin-prometido', title:'El jardín prometido', author:'Windy', lang:'es', genre:'fiction', status:'ongoing', summary:'Una historia de fe y esperanza en medio de las pruebas de la vida.', chaptersCount:3 },
+            { id:'light-after-storm', title:'Light after the storm', author:'Windy', lang:'en', genre:'romance', status:'ongoing', summary:'A story of love, faith and redemption after the darkest storms of life.', chaptersCount:5 },
+            { id:'chants-aurore', title:'Chants de l\'aurore', author:'Windy', lang:'fr', genre:'poesie', status:'ongoing', summary:'Un recueil de poèmes chrétiens qui célèbrent la grâce divine au lever du jour.', chaptersCount:1 },
+            { id:'camino-de-fe', title:'Camino de fe', author:'Windy', lang:'es', genre:'temoignage', status:'ongoing', summary:'Un testimonio de cómo la fe puede transformar una vida completamente.', chaptersCount:2 },
+            { id:'little-shepherd', title:'The little shepherd', author:'Windy', lang:'en', genre:'jeunesse', status:'ongoing', summary:'A children\'s story about a young shepherd who learns the greatest lessons of faith.', chaptersCount:1 }
+          ];
+          for (const book of seedBooks) {
+            const { id, ...data } = book;
+            await addDoc(collection(db, "books"), { ...data, createdAt: serverTimestamp() });
+          }
+          // Reload after seeding
+          const snap2 = await getDocs(collection(db, "books"));
+          _books = snap2.docs.map(d => ({ id: d.id, ...d.data() }));
+          showToast('Livres importés automatiquement !');
+        }
+
+        document.getElementById('stat-books').textContent = _books.length;
+        renderAdminBooks();
+        updateBookSelect();
+        // Count chapters
+        let totalCh = 0;
+        for (const book of _books) {
+          const chSnap = await getDocs(collection(db, "books", book.id, "chapters"));
+          totalCh += chSnap.size;
+        }
+        document.getElementById('stat-chapters').textContent = totalCh;
+        // Count users
+        try {
+          const usersSnap = await getDocs(collection(db, "users"));
+          document.getElementById('stat-users').textContent = usersSnap.size;
+        } catch(e) {}
+      } catch(e) { console.error(e); }
+    }
+
+    function renderAdminBooks() {
+      const list = document.getElementById('admin-books-list');
+      if (_books.length === 0) {
+        list.innerHTML = `<div style="text-align:center;padding:2rem;font-size:12px;color:rgba(255,255,255,0.3);">Aucun livre publié pour l'instant.</div>`;
+        return;
+      }
+      list.innerHTML = _books.map((book, i) => `
+        <div class="book-item">
+          <div class="book-item-cover ${covers[i % covers.length]}">${bookSvg}</div>
+          <div class="book-item-info">
+            <div class="book-item-title">${book.title}</div>
+            <div class="book-item-meta">
+              <span class="book-item-badge badge-${book.lang||'fr'}">${(book.lang||'fr').toUpperCase()}</span>
+              <span class="book-item-badge ${book.status==='finished'?'badge-finished':'badge-ongoing'}">${book.status==='finished'?'Terminé':'En cours'}</span>
+              <span>${book.chaptersCount||0} chapitres</span>
+            </div>
+          </div>
+          <div class="book-item-actions">
+            <div class="action-btn" onclick="openEditBook('${book.id}')" title="Modifier" style="border-color:rgba(201,168,76,0.3);">
+              <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </div>
+            <div class="action-btn" onclick="toggleStatus('${book.id}')" title="${book.status==='finished'?'Remettre en cours':'Marquer comme terminé'}" style="border-color:rgba(126,200,126,0.3);">
+              <svg viewBox="0 0 24 24" stroke="${book.status==='finished'?'#7EC87E':'rgba(160,140,200,0.6)'}"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="action-btn delete" onclick="deleteBook('${book.id}')" title="Supprimer">
+              <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            </div>
+          </div>
+        </div>`).join('');
+    }
+
+    function updateBookSelect() {
+      const sel = document.getElementById('chapter-book-select');
+      sel.innerHTML = '<option value="">— Sélectionner un livre —</option>' +
+        _books.map(b => `<option value="${b.id}">${b.title} (${(b.lang||'fr').toUpperCase()})</option>`).join('');
+    }
+
+    window._addBook = async (data) => {
+      try {
+        const docRef = await addDoc(collection(db, "books"), {
+          ...data,
+          chaptersCount: 0,
+          createdAt: serverTimestamp()
+        });
+        _books.push({ id: docRef.id, ...data, chaptersCount: 0 });
+        document.getElementById('stat-books').textContent = _books.length;
+        renderAdminBooks();
+        updateBookSelect();
+        showToast('Livre publié avec succès !');
+      } catch(e) { console.error(e); showToast('Erreur lors de la publication.'); }
+    };
+
+    window._addChapter = async (bookId, data) => {
+      try {
+        await addDoc(collection(db, "books", bookId, "chapters"), {
+          ...data,
+          createdAt: serverTimestamp()
+        });
+        // Update chapter count
+        const book = _books.find(b => b.id === bookId);
+        if (book) {
+          book.chaptersCount = (book.chaptersCount || 0) + 1;
+          await updateDoc(doc(db, "books", bookId), { chaptersCount: book.chaptersCount });
+        }
+        renderAdminBooks();
+        const totalCh = _books.reduce((a,b) => a + (b.chaptersCount||0), 0);
+        document.getElementById('stat-chapters').textContent = totalCh;
+        showToast('Chapitre publié avec succès !');
+      } catch(e) { console.error(e); showToast('Erreur lors de la publication.'); }
+    };
+
+    window._deleteBook = async (bookId) => {
+      try {
+        await deleteDoc(doc(db, "books", bookId));
+        _books = _books.filter(b => b.id !== bookId);
+        document.getElementById('stat-books').textContent = _books.length;
+        renderAdminBooks();
+        updateBookSelect();
+        showToast('Livre supprimé.');
+      } catch(e) { console.error(e); }
+    };
+
+    window._toggleStatus = async (bookId) => {
+      const book = _books.find(b => b.id === bookId);
+      if (!book) return;
+      const newStatus = book.status === 'finished' ? 'ongoing' : 'finished';
+      try {
+        await updateDoc(doc(db, "books", bookId), { status: newStatus });
+        book.status = newStatus;
+        renderAdminBooks();
+        showToast(newStatus === 'finished' ? 'Marqué comme terminé.' : 'Remis en cours.');
+      } catch(e) { console.error(e); }
+    };
+
+    window._updateBook = async (bookId, data) => {
+      try {
+        await updateDoc(doc(db, "books", bookId), data);
+        const book = _books.find(b => b.id === bookId);
+        if (book) Object.assign(book, data);
+        renderAdminBooks();
+        updateBookSelect();
+        showToast('Livre mis à jour.');
+      } catch(e) { console.error(e); showToast('Erreur lors de la mise à jour.'); }
+    };
+
+    let _authResolved = false;
+
+    onAuthStateChanged(auth, async (user) => {
+      _authResolved = true;
+      document.getElementById('loading').style.display = 'none';
+      if (user && user.email === ADMIN_EMAIL) {
+        document.getElementById('main').style.display = 'block';
+        document.getElementById('access-denied').style.display = 'none';
+        await loadBooks();
+      } else if (user) {
+        // Logged in but not admin
+        document.getElementById('access-denied').style.display = 'flex';
+      } else {
+        // Not logged in — show login button instead of access denied
+        document.getElementById('access-denied').innerHTML = `
+          <div class="denied-icon" style="background:rgba(201,168,76,0.1);border-color:rgba(201,168,76,0.3);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.5" width="26" height="26"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          </div>
+          <div class="denied-title" style="color:#C9A84C;">Connexion requise</div>
+          <div class="denied-text">Connecte-toi avec ton compte Google pour accéder au dashboard.</div>
+          <button onclick="signInAdmin()" style="margin-top:1rem;padding:12px 28px;border-radius:8px;background:#fff;color:#333;font-size:13px;font-family:Inter,sans-serif;font-weight:500;cursor:pointer;border:none;display:flex;align-items:center;gap:10px;">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+            Continuer avec Google
+          </button>`;
+        document.getElementById('access-denied').style.display = 'flex';
+      }
+    });
+
+    async function signInAdmin() {
+      const { GoogleAuthProvider, signInWithPopup } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js");
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+    }
+    window.signInAdmin = signInAdmin;
+
+    window._getBooks = () => _books;
+  </script>
+
+  <script>
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    function previewCover(input) {
+      const file = input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = document.getElementById('cover-preview-img');
+        img.src = e.target.result;
+        img.style.display = 'block';
+        document.getElementById('cover-upload-placeholder').style.display = 'none';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function addBook() {
+      const title = document.getElementById('book-title').value.trim();
+      const author = document.getElementById('book-author').value.trim();
+      const lang = document.getElementById('book-lang').value;
+      const genre = document.getElementById('book-genre').value;
+      const status = document.getElementById('book-status').value;
+      const summary = document.getElementById('book-summary').value.trim();
+
+      if (!title) { showToast('Le titre est obligatoire.'); return; }
+      if (!summary) { showToast('Le résumé est obligatoire.'); return; }
+
+      const id = title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+      if (window._addBook) window._addBook({ id, title, author, lang, genre, status, summary });
+      clearBookForm();
+    }
+
+    function clearBookForm() {
+      document.getElementById('book-title').value = '';
+      document.getElementById('book-summary').value = '';
+      document.getElementById('book-lang').value = 'fr';
+      document.getElementById('book-genre').value = 'fiction';
+      document.getElementById('book-status').value = 'ongoing';
+      document.getElementById('cover-preview-img').style.display = 'none';
+      document.getElementById('cover-upload-placeholder').style.display = 'block';
+      document.getElementById('book-cover-file').value = '';
+    }
+
+    function addChapter() {
+      const bookId = document.getElementById('chapter-book-select').value;
+      const title = document.getElementById('chapter-title').value.trim();
+      const num = parseInt(document.getElementById('chapter-num').value);
+      const content = document.getElementById('chapter-content').value.trim();
+
+      if (!bookId) { showToast('Sélectionne un livre.'); return; }
+      if (!title) { showToast('Le titre du chapitre est obligatoire.'); return; }
+      if (!num || num < 1) { showToast('Le numéro de chapitre est obligatoire.'); return; }
+      if (!content) { showToast('Le contenu du chapitre est obligatoire.'); return; }
+
+      const readTime = Math.ceil(content.split(' ').length / 200);
+      if (window._addChapter) window._addChapter(bookId, { title, number: num, content, readTime });
+      clearChapterForm();
+    }
+
+    function clearChapterForm() {
+      document.getElementById('chapter-title').value = '';
+      document.getElementById('chapter-num').value = '';
+      document.getElementById('chapter-content').value = '';
+      document.getElementById('chapter-book-select').value = '';
+    }
+
+    function deleteBook(bookId) {
+      if (confirm('Supprimer ce livre et tous ses chapitres ?')) {
+        if (window._deleteBook) window._deleteBook(bookId);
+      }
+    }
+
+    function openEditBook(bookId) {
+      const book = window._getBooks().find(b => b.id === bookId);
+      if (!book) return;
+      document.getElementById('edit-book-id').value = bookId;
+      document.getElementById('edit-title').value = book.title || '';
+      document.getElementById('edit-author').value = book.author || '';
+      document.getElementById('edit-lang').value = book.lang || 'fr';
+      document.getElementById('edit-genre').value = book.genre || 'fiction';
+      document.getElementById('edit-status').value = book.status || 'ongoing';
+      document.getElementById('edit-summary').value = book.summary || '';
+      document.getElementById('edit-modal').style.display = 'flex';
+    }
+
+    function closeEdit() {
+      document.getElementById('edit-modal').style.display = 'none';
+    }
+
+    function saveEdit() {
+      const bookId = document.getElementById('edit-book-id').value;
+      const data = {
+        title: document.getElementById('edit-title').value.trim(),
+        author: document.getElementById('edit-author').value.trim(),
+        lang: document.getElementById('edit-lang').value,
+        genre: document.getElementById('edit-genre').value,
+        status: document.getElementById('edit-status').value,
+        summary: document.getElementById('edit-summary').value.trim()
+      };
+      if (!data.title) { showToast('Le titre est obligatoire.'); return; }
+      if (window._updateBook) window._updateBook(bookId, data);
+      closeEdit();
+    }
+
+    function toggleStatus(bookId) {
+      if (window._toggleStatus) window._toggleStatus(bookId);
+    }
+
+    document.getElementById('edit-modal').addEventListener('click', e => {
+      if (e.target === document.getElementById('edit-modal')) closeEdit();
+    });
+
+    window.openEditBook = openEditBook;
+    window.closeEdit = closeEdit;
+    window.saveEdit = saveEdit;
+    window.toggleStatus = toggleStatus;
+    window.addBook = addBook;
+    window.clearBookForm = clearBookForm;
+    window.addChapter = addChapter;
+    window.clearChapterForm = clearChapterForm;
+    window.deleteBook = deleteBook;
+    window.previewCover = previewCover;
+  </script>
+</body>
+</html>
