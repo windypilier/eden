@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EDEN — Feedback</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --gold: #C9A84C; --gold-light: #F0D080; --bg-deep: #0E0828; --border-purple: #2A1A6A; }
+    html, body { height:100%; background:radial-gradient(ellipse at top,#2A1B6A 0%,#160D42 55%,#0E0828 100%); color:#fff; font-family:'Inter',sans-serif; font-weight:300; }
+
+    nav { position:fixed; top:0; left:0; right:0; z-index:100; background:rgba(14,8,40,0.95); backdrop-filter:blur(12px); border-bottom:0.5px solid var(--border-purple); padding:0 1.5rem; height:54px; display:flex; align-items:center; justify-content:space-between; }
+    .nav-left { display:flex; align-items:center; gap:14px; }
+    .nav-back { width:32px; height:32px; border-radius:50%; background:var(--bg-deep); border:0.5px solid var(--border-purple); display:flex; align-items:center; justify-content:center; cursor:pointer; text-decoration:none; transition:border-color 0.2s; }
+    .nav-back:hover { border-color:var(--gold); }
+    .nav-back svg { width:14px; height:14px; stroke:rgba(160,140,200,0.7); fill:none; stroke-width:2; }
+    .nav-logo { font-family:'Cinzel',serif; font-size:18px; font-weight:400; letter-spacing:5px; color:var(--gold); text-decoration:none; }
+
+    /* CATEGORY SELECTOR */
+    .category-bar { position:fixed; top:54px; left:0; right:0; z-index:99; background:rgba(14,8,40,0.95); backdrop-filter:blur(8px); border-bottom:0.5px solid var(--border-purple); padding:0.7rem 1.5rem; display:flex; gap:8px; overflow-x:auto; }
+    .category-bar::-webkit-scrollbar { display:none; }
+    .cat-btn { padding:7px 16px; border-radius:20px; font-size:10px; letter-spacing:1px; cursor:pointer; border:0.5px solid var(--border-purple); background:transparent; color:rgba(160,140,200,0.7); font-family:'Inter',sans-serif; white-space:nowrap; transition:all 0.2s; display:flex; align-items:center; gap:6px; }
+    .cat-btn.on { border-color:var(--gold); color:var(--gold); background:rgba(201,168,76,0.08); }
+    .cat-btn span { font-size:13px; }
+
+    /* THREAD LIST */
+    .threads-wrap { position:fixed; top:110px; left:0; right:0; bottom:0; overflow-y:auto; padding:1rem 1.5rem 6rem; }
+    .thread-card { background:rgba(14,8,40,0.7); border:0.5px solid var(--border-purple); border-radius:12px; padding:1rem 1.2rem; margin-bottom:10px; cursor:pointer; transition:border-color 0.2s; }
+    .thread-card:hover { border-color:rgba(201,168,76,0.3); }
+    .thread-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+    .thread-cat { font-size:9px; padding:3px 10px; border-radius:10px; letter-spacing:1px; text-transform:uppercase; }
+    .cat-bug { background:rgba(224,90,90,0.15); color:#E05A5A; border:0.5px solid rgba(224,90,90,0.2); }
+    .cat-suggestion { background:rgba(201,168,76,0.12); color:var(--gold); border:0.5px solid rgba(201,168,76,0.2); }
+    .cat-complaint { background:rgba(180,100,220,0.12); color:#C07AE0; border:0.5px solid rgba(180,100,220,0.2); }
+    .cat-worry { background:rgba(100,160,220,0.12); color:#78AADD; border:0.5px solid rgba(100,160,220,0.2); }
+    .thread-time { font-size:9px; color:rgba(255,255,255,0.3); letter-spacing:1px; }
+    .thread-text { font-size:13px; color:rgba(255,255,255,0.8); line-height:1.6; margin-bottom:8px; }
+    .thread-footer { display:flex; align-items:center; justify-content:space-between; }
+    .thread-replies { font-size:10px; color:rgba(255,255,255,0.3); display:flex; align-items:center; gap:5px; }
+    .thread-replies svg { width:12px; height:12px; stroke:currentColor; fill:none; stroke-width:1.5; }
+    .thread-unread { width:7px; height:7px; border-radius:50%; background:var(--gold); }
+
+    /* NEW MESSAGE BTN */
+    .fab { position:fixed; bottom:2rem; right:1.5rem; width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg,var(--gold),var(--gold-light)); display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 4px 20px rgba(201,168,76,0.3); z-index:100; transition:transform 0.2s; }
+    .fab:hover { transform:scale(1.05); }
+    .fab svg { width:22px; height:22px; stroke:#160D42; fill:none; stroke-width:2; }
+
+    /* NEW THREAD MODAL */
+    .modal-overlay { position:fixed; inset:0; background:rgba(10,6,30,0.88); backdrop-filter:blur(6px); z-index:200; display:none; align-items:flex-end; justify-content:center; }
+    .modal-overlay.open { display:flex; }
+    .modal { background:#0D0A22; border:0.5px solid var(--border-purple); border-radius:20px 20px 0 0; padding:1.5rem; width:100%; max-width:600px; }
+    .modal-handle { width:36px; height:3px; background:rgba(160,140,200,0.3); border-radius:2px; margin:0 auto 1.2rem; }
+    .modal-title { font-family:'Cinzel',serif; font-size:12px; letter-spacing:3px; color:var(--gold); text-transform:uppercase; margin-bottom:1.2rem; opacity:0.8; }
+    .cat-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:1rem; }
+    .cat-option { padding:10px 14px; border-radius:10px; border:0.5px solid var(--border-purple); background:transparent; cursor:pointer; text-align:left; transition:all 0.2s; display:flex; align-items:center; gap:10px; }
+    .cat-option.selected { border-color:var(--gold); background:rgba(201,168,76,0.08); }
+    .cat-option-icon { font-size:18px; }
+    .cat-option-label { font-size:12px; color:#fff; font-weight:400; }
+    .cat-option-sub { font-size:10px; color:rgba(255,255,255,0.4); }
+    .msg-input { width:100%; background:rgba(8,4,24,0.8); border:0.5px solid var(--border-purple); border-radius:10px; padding:12px 14px; font-size:13px; color:#fff; font-family:'Inter',sans-serif; outline:none; resize:none; min-height:100px; line-height:1.6; margin-bottom:1rem; transition:border-color 0.2s; }
+    .msg-input:focus { border-color:var(--gold); }
+    .msg-input::placeholder { color:rgba(160,140,200,0.3); }
+    .anon-note { font-size:10px; color:rgba(255,255,255,0.3); letter-spacing:1px; margin-bottom:1rem; display:flex; align-items:center; gap:6px; }
+    .anon-note svg { width:12px; height:12px; stroke:currentColor; fill:none; stroke-width:1.5; }
+    .modal-btns { display:flex; gap:10px; }
+    .btn-send { flex:1; padding:12px; border-radius:8px; background:linear-gradient(135deg,var(--gold),var(--gold-light)); color:#160D42; border:none; font-size:11px; font-family:'Inter',sans-serif; letter-spacing:2px; cursor:pointer; text-transform:uppercase; font-weight:500; }
+    .btn-cancel-modal { padding:12px 20px; border-radius:8px; background:transparent; color:rgba(160,140,200,0.7); border:0.5px solid var(--border-purple); font-size:11px; font-family:'Inter',sans-serif; letter-spacing:1px; cursor:pointer; }
+
+    /* CHAT VIEW */
+    .chat-view { position:fixed; inset:0; background:radial-gradient(ellipse at top,#2A1B6A 0%,#160D42 55%,#0E0828 100%); z-index:150; display:none; flex-direction:column; }
+    .chat-view.open { display:flex; }
+    .chat-header { background:rgba(14,8,40,0.95); border-bottom:0.5px solid var(--border-purple); padding:0 1.5rem; height:54px; display:flex; align-items:center; gap:14px; flex-shrink:0; }
+    .chat-back { width:30px; height:30px; border-radius:50%; background:var(--bg-deep); border:0.5px solid var(--border-purple); display:flex; align-items:center; justify-content:center; cursor:pointer; }
+    .chat-back svg { width:13px; height:13px; stroke:rgba(160,140,200,0.7); fill:none; stroke-width:2; }
+    .chat-info { flex:1; }
+    .chat-cat-label { font-size:10px; }
+    .chat-anon { font-size:11px; color:rgba(255,255,255,0.4); }
+    .chat-messages { flex:1; overflow-y:auto; padding:1.5rem; display:flex; flex-direction:column; gap:10px; }
+    .msg-bubble { max-width:80%; }
+    .msg-bubble.user { align-self:flex-end; }
+    .msg-bubble.admin { align-self:flex-start; }
+    .msg-text { padding:10px 14px; border-radius:12px; font-size:13px; line-height:1.6; }
+    .msg-bubble.user .msg-text { background:rgba(42,26,106,0.8); border:0.5px solid rgba(42,26,106,0.5); color:#fff; border-bottom-right-radius:4px; }
+    .msg-bubble.admin .msg-text { background:rgba(201,168,76,0.12); border:0.5px solid rgba(201,168,76,0.2); color:#fff; border-bottom-left-radius:4px; }
+    .msg-time { font-size:9px; color:rgba(255,255,255,0.3); margin-top:4px; padding:0 4px; }
+    .msg-bubble.user .msg-time { text-align:right; }
+    .admin-badge { font-size:9px; color:var(--gold); letter-spacing:1px; margin-bottom:3px; padding:0 4px; }
+    .chat-input-bar { background:rgba(14,8,40,0.95); border-top:0.5px solid var(--border-purple); padding:0.8rem 1rem; display:flex; gap:10px; align-items:flex-end; flex-shrink:0; }
+    .chat-input { flex:1; background:rgba(42,26,106,0.3); border:0.5px solid var(--border-purple); border-radius:20px; padding:10px 14px; font-size:13px; color:#fff; font-family:'Inter',sans-serif; outline:none; resize:none; max-height:100px; line-height:1.5; transition:border-color 0.2s; }
+    .chat-input:focus { border-color:var(--gold); }
+    .chat-input::placeholder { color:rgba(160,140,200,0.3); }
+    .chat-send { width:38px; height:38px; border-radius:50%; background:linear-gradient(135deg,var(--gold),var(--gold-light)); display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; border:none; transition:opacity 0.2s; }
+    .chat-send:hover { opacity:0.9; }
+    .chat-send svg { width:16px; height:16px; stroke:#160D42; fill:none; stroke-width:2; }
+
+    .empty-threads { text-align:center; padding:4rem 1rem; }
+    .empty-threads svg { width:40px; height:40px; stroke:rgba(160,140,200,0.2); fill:none; stroke-width:1.2; margin-bottom:1rem; }
+    .empty-threads p { font-size:12px; color:rgba(255,255,255,0.25); line-height:1.7; }
+
+    ::-webkit-scrollbar { width:4px; }
+    ::-webkit-scrollbar-track { background:transparent; }
+    ::-webkit-scrollbar-thumb { background:var(--border-purple); border-radius:2px; }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-left">
+      <a class="nav-back" href="index.html"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></a>
+      <a class="nav-logo" href="index.html">EDEN</a>
+    </div>
+  </nav>
+
+  <div class="category-bar">
+    <button class="cat-btn on" id="cat-all" onclick="filterCat('all')"><span>💬</span> <span id="label-all">Tous</span></button>
+    <button class="cat-btn" id="cat-suggestion" onclick="filterCat('suggestion')"><span>💡</span> <span id="label-suggestion">Suggestions</span></button>
+    <button class="cat-btn" id="cat-bug" onclick="filterCat('bug')"><span>🐛</span> <span id="label-bug">Bugs</span></button>
+    <button class="cat-btn" id="cat-complaint" onclick="filterCat('complaint')"><span>📢</span> <span id="label-complaint">Plaintes</span></button>
+    <button class="cat-btn" id="cat-worry" onclick="filterCat('worry')"><span>🤍</span> <span id="label-worry">Confidences</span></button>
+  </div>
+
+  <div class="threads-wrap" id="threads-wrap">
+    <div class="empty-threads" id="empty-state">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <p id="label-empty">Sois la première à partager quelque chose.<br>Tout est anonyme.</p>
+    </div>
+    <div id="threads-list"></div>
+  </div>
+
+  <div class="fab" onclick="openNewThread()">
+    <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </div>
+
+  <!-- NEW THREAD MODAL -->
+  <div class="modal-overlay" id="new-thread-modal">
+    <div class="modal">
+      <div class="modal-handle"></div>
+      <div class="modal-title" id="label-new-msg">Nouveau message</div>
+      <div class="cat-grid">
+        <div class="cat-option selected" onclick="selectCat(this,'suggestion')" id="opt-suggestion">
+          <span class="cat-option-icon">💡</span>
+          <div><div class="cat-option-label" id="label-opt-suggestion">Suggestion</div><div class="cat-option-sub" id="sub-opt-suggestion">Améliorer EDEN</div></div>
+        </div>
+        <div class="cat-option" onclick="selectCat(this,'bug')" id="opt-bug">
+          <span class="cat-option-icon">🐛</span>
+          <div><div class="cat-option-label" id="label-opt-bug">Bug</div><div class="cat-option-sub" id="sub-opt-bug">Quelque chose ne marche pas</div></div>
+        </div>
+        <div class="cat-option" onclick="selectCat(this,'complaint')" id="opt-complaint">
+          <span class="cat-option-icon">📢</span>
+          <div><div class="cat-option-label" id="label-opt-complaint">Plainte</div><div class="cat-option-sub" id="sub-opt-complaint">Quelque chose te dérange</div></div>
+        </div>
+        <div class="cat-option" onclick="selectCat(this,'worry')" id="opt-worry">
+          <span class="cat-option-icon">🤍</span>
+          <div><div class="cat-option-label" id="label-opt-worry">Confidence</div><div class="cat-option-sub" id="sub-opt-worry">Partager quelque chose de personnel</div></div>
+        </div>
+      </div>
+      <textarea class="msg-input" id="new-msg-text" placeholder="Écris ton message ici..."></textarea>
+      <div class="anon-note">
+        <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        <span id="label-anon">Message entièrement anonyme — personne ne connaîtra ton identité</span>
+      </div>
+      <div class="modal-btns">
+        <button class="btn-cancel-modal" onclick="closeNewThread()" id="label-cancel">Annuler</button>
+        <button class="btn-send" onclick="sendThread()" id="label-send">Envoyer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHAT VIEW -->
+  <div class="chat-view" id="chat-view">
+    <div class="chat-header">
+      <div class="chat-back" onclick="closeChat()"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></div>
+      <div class="chat-info">
+        <div class="chat-cat-label" id="chat-cat-label"></div>
+        <div class="chat-anon" id="label-chat-anon">Conversation anonyme</div>
+      </div>
+    </div>
+    <div class="chat-messages" id="chat-messages"></div>
+    <div class="chat-input-bar">
+      <textarea class="chat-input" id="chat-input" placeholder="Répondre..." rows="1" oninput="autoResize(this)"></textarea>
+      <button class="chat-send" onclick="sendReply()"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+    </div>
+  </div>
+
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, collection, doc, addDoc, onSnapshot, updateDoc, arrayUnion, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAHhYlri1s8EldAGRa7IaVr1vI_1R2Q0Lo",
+      authDomain: "eden-christianstories-36fe6.firebaseapp.com",
+      projectId: "eden-christianstories-36fe6",
+      storageBucket: "eden-christianstories-36fe6.firebasestorage.app",
+      messagingSenderId: "1051577294784",
+      appId: "1:1051577294784:web:b62cb060b6909627e8f225"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const ADMIN_EMAIL = 'windy.pilierreyes@gmail.com';
+
+    let _isAdmin = false;
+    let _threads = [];
+    let _activeThread = null;
+    let _userToken = null;
+
+    // Generate anonymous user token stored in localStorage
+    if (!localStorage.getItem('eden-anon-id')) {
+      localStorage.setItem('eden-anon-id', 'anon_' + Math.random().toString(36).substr(2,9));
+    }
+    _userToken = localStorage.getItem('eden-anon-id');
+
+    onAuthStateChanged(auth, user => {
+      if (user && user.email === ADMIN_EMAIL) _isAdmin = true;
+    });
+
+    // Load threads in real-time
+    const q = query(collection(db, "feedback"), orderBy("createdAt", "desc"));
+    onSnapshot(q, snap => {
+      _threads = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      window._threads = _threads;
+      renderThreads(window._activeCat || 'all');
+    });
+
+    window._sendThread = async (category, text) => {
+      try {
+        await addDoc(collection(db, "feedback"), {
+          category,
+          text,
+          userToken: _userToken,
+          isAdmin: _isAdmin,
+          replies: [],
+          createdAt: serverTimestamp(),
+          hasAdminReply: false,
+          unread: false
+        });
+      } catch(e) { console.error(e); }
+    };
+
+    window._sendReply = async (threadId, text) => {
+      try {
+        const reply = {
+          text,
+          isAdmin: _isAdmin,
+          userToken: _isAdmin ? 'admin' : _userToken,
+          timestamp: new Date().toISOString()
+        };
+        await updateDoc(doc(db, "feedback", threadId), {
+          replies: arrayUnion(reply),
+          hasAdminReply: _isAdmin ? true : undefined,
+          unread: !_isAdmin
+        });
+      } catch(e) { console.error(e); }
+    };
+
+    window._isAdmin = () => _isAdmin;
+    window._getUserToken = () => _userToken;
+  </script>
+
+  <script>
+    const lang = localStorage.getItem('eden-lang') || 'fr';
+    const T = {
+      fr: {
+        all:'Tous', suggestion:'Suggestions', bug:'Bugs', complaint:'Plaintes', worry:'Confidences',
+        new_msg:'Nouveau message', anon:'Message entièrement anonyme — personne ne connaîtra ton identité',
+        cancel:'Annuler', send:'Envoyer', empty:'Sois la première à partager quelque chose.\nTout est anonyme.',
+        placeholder:'Écris ton message ici...', reply_placeholder:'Répondre...',
+        chat_anon:'Conversation anonyme', admin_badge:'EDEN Admin',
+        opt_suggestion:'Suggestion', sub_suggestion:'Améliorer EDEN',
+        opt_bug:'Bug', sub_bug:'Quelque chose ne marche pas',
+        opt_complaint:'Plainte', sub_complaint:'Quelque chose te dérange',
+        opt_worry:'Confidence', sub_worry:'Partager quelque chose de personnel',
+        replies:'réponse', reply_ago:'il y a',
+        cat_labels: { suggestion:'Suggestion', bug:'Bug', complaint:'Plainte', worry:'Confidence' }
+      },
+      es: {
+        all:'Todos', suggestion:'Sugerencias', bug:'Bugs', complaint:'Quejas', worry:'Confidencias',
+        new_msg:'Nuevo mensaje', anon:'Mensaje completamente anónimo — nadie conocerá tu identidad',
+        cancel:'Cancelar', send:'Enviar', empty:'Sé el primero en compartir algo.\nTodo es anónimo.',
+        placeholder:'Escribe tu mensaje aquí...', reply_placeholder:'Responder...',
+        chat_anon:'Conversación anónima', admin_badge:'EDEN Admin',
+        opt_suggestion:'Sugerencia', sub_suggestion:'Mejorar EDEN',
+        opt_bug:'Bug', sub_bug:'Algo no funciona',
+        opt_complaint:'Queja', sub_complaint:'Algo te molesta',
+        opt_worry:'Confidencia', sub_worry:'Compartir algo personal',
+        replies:'respuesta', reply_ago:'hace',
+        cat_labels: { suggestion:'Sugerencia', bug:'Bug', complaint:'Queja', worry:'Confidencia' }
+      },
+      en: {
+        all:'All', suggestion:'Suggestions', bug:'Bugs', complaint:'Complaints', worry:'Personal',
+        new_msg:'New message', anon:'Fully anonymous — no one will know your identity',
+        cancel:'Cancel', send:'Send', empty:'Be the first to share something.\nEverything is anonymous.',
+        placeholder:'Write your message here...', reply_placeholder:'Reply...',
+        chat_anon:'Anonymous conversation', admin_badge:'EDEN Admin',
+        opt_suggestion:'Suggestion', sub_suggestion:'Improve EDEN',
+        opt_bug:'Bug', sub_bug:'Something is not working',
+        opt_complaint:'Complaint', sub_complaint:'Something bothers you',
+        opt_worry:'Personal', sub_worry:'Share something personal',
+        replies:'reply', reply_ago:'ago',
+        cat_labels: { suggestion:'Suggestion', bug:'Bug', complaint:'Complaint', worry:'Personal' }
+      }
+    };
+    const t = T[lang] || T.fr;
+    window._activeCat = 'all';
+    window._threads = [];
+
+    // Apply translations
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('label-all').textContent = t.all;
+      document.getElementById('label-suggestion').textContent = t.suggestion;
+      document.getElementById('label-bug').textContent = t.bug;
+      document.getElementById('label-complaint').textContent = t.complaint;
+      document.getElementById('label-worry').textContent = t.worry;
+      document.getElementById('label-new-msg').textContent = t.new_msg;
+      document.getElementById('label-anon').textContent = t.anon;
+      document.getElementById('label-cancel').textContent = t.cancel;
+      document.getElementById('label-send').textContent = t.send;
+      document.getElementById('label-empty').textContent = t.empty;
+      document.getElementById('label-chat-anon').textContent = t.chat_anon;
+      document.getElementById('label-opt-suggestion').textContent = t.opt_suggestion;
+      document.getElementById('sub-opt-suggestion').textContent = t.sub_suggestion;
+      document.getElementById('label-opt-bug').textContent = t.opt_bug;
+      document.getElementById('sub-opt-bug').textContent = t.sub_bug;
+      document.getElementById('label-opt-complaint').textContent = t.opt_complaint;
+      document.getElementById('sub-opt-complaint').textContent = t.sub_complaint;
+      document.getElementById('label-opt-worry').textContent = t.opt_worry;
+      document.getElementById('sub-opt-worry').textContent = t.sub_worry;
+      document.getElementById('new-msg-text').placeholder = t.placeholder;
+      document.getElementById('chat-input').placeholder = t.reply_placeholder;
+    });
+
+    function renderThreads(cat) {
+      const list = document.getElementById('threads-list');
+      const empty = document.getElementById('empty-state');
+      const userToken = localStorage.getItem('eden-anon-id');
+      const isAdmin = window._isAdmin ? window._isAdmin() : false;
+
+      let threads = window._threads;
+      // Non-admin only sees their own threads
+      if (!isAdmin) threads = threads.filter(th => th.userToken === userToken);
+      if (cat !== 'all') threads = threads.filter(th => th.category === cat);
+
+      if (threads.length === 0) {
+        empty.style.display = 'block';
+        list.innerHTML = '';
+        return;
+      }
+      empty.style.display = 'none';
+
+      const catClass = { suggestion:'cat-suggestion', bug:'cat-bug', complaint:'cat-complaint', worry:'cat-worry' };
+      list.innerHTML = threads.map(th => `
+        <div class="thread-card" onclick="openChat('${th.id}')">
+          <div class="thread-top">
+            <span class="thread-cat ${catClass[th.category]||'cat-suggestion'}">${t.cat_labels[th.category]||th.category}</span>
+            <div style="display:flex;align-items:center;gap:8px;">
+              ${th.unread && isAdmin ? '<div class="thread-unread"></div>' : ''}
+              <span class="thread-time">${formatTime(th.createdAt)}</span>
+            </div>
+          </div>
+          <div class="thread-text">${th.text}</div>
+          <div class="thread-footer">
+            <div class="thread-replies">
+              <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              ${(th.replies||[]).length} ${t.replies}${(th.replies||[]).length !== 1 ? 's' : ''}
+            </div>
+            ${th.hasAdminReply ? `<span style="font-size:9px;color:var(--gold);letter-spacing:1px;">✦ EDEN</span>` : ''}
+          </div>
+        </div>`).join('');
+    }
+
+    function formatTime(ts) {
+      if (!ts) return '';
+      const d = ts.toDate ? ts.toDate() : new Date(ts);
+      const diff = Math.floor((Date.now() - d.getTime()) / 60000);
+      if (diff < 1) return 'maintenant';
+      if (diff < 60) return diff + ' min';
+      if (diff < 1440) return Math.floor(diff/60) + 'h';
+      return Math.floor(diff/1440) + 'j';
+    }
+
+    let _selectedCat = 'suggestion';
+
+    function filterCat(cat) {
+      window._activeCat = cat;
+      document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('on'));
+      document.getElementById('cat-'+cat).classList.add('on');
+      renderThreads(cat);
+    }
+
+    function openNewThread() {
+      document.getElementById('new-thread-modal').classList.add('open');
+    }
+
+    function closeNewThread() {
+      document.getElementById('new-thread-modal').classList.remove('open');
+      document.getElementById('new-msg-text').value = '';
+    }
+
+    function selectCat(el, cat) {
+      _selectedCat = cat;
+      document.querySelectorAll('.cat-option').forEach(o => o.classList.remove('selected'));
+      el.classList.add('selected');
+    }
+
+    function sendThread() {
+      const text = document.getElementById('new-msg-text').value.trim();
+      if (!text) return;
+      if (window._sendThread) window._sendThread(_selectedCat, text);
+      closeNewThread();
+    }
+
+    function openChat(threadId) {
+      const thread = window._threads.find(t => t.id === threadId);
+      if (!thread) return;
+      window._activeThread = thread;
+      const catClass = { suggestion:'cat-suggestion', bug:'cat-bug', complaint:'cat-complaint', worry:'cat-worry' };
+      document.getElementById('chat-cat-label').innerHTML = `<span class="thread-cat ${catClass[thread.category]||''}">${t.cat_labels[thread.category]||thread.category}</span>`;
+      renderChatMessages(thread);
+      document.getElementById('chat-view').classList.add('open');
+    }
+
+    function renderChatMessages(thread) {
+      const isAdmin = window._isAdmin ? window._isAdmin() : false;
+      const userToken = localStorage.getItem('eden-anon-id');
+      const msgs = document.getElementById('chat-messages');
+
+      // First message
+      let html = `<div class="msg-bubble user">
+        <div class="msg-text">${thread.text}</div>
+        <div class="msg-time">${formatTime(thread.createdAt)}</div>
+      </div>`;
+
+      // Replies
+      (thread.replies||[]).forEach(r => {
+        const isMe = isAdmin ? r.isAdmin : r.userToken === userToken;
+        const side = isMe ? 'user' : 'admin';
+        html += `<div class="msg-bubble ${side}">
+          ${!isMe ? `<div class="admin-badge">${t.admin_badge}</div>` : ''}
+          <div class="msg-text">${r.text}</div>
+          <div class="msg-time">${formatTime(r.timestamp)}</div>
+        </div>`;
+      });
+
+      msgs.innerHTML = html;
+      msgs.scrollTop = msgs.scrollHeight;
+    }
+
+    function closeChat() {
+      document.getElementById('chat-view').classList.remove('open');
+      window._activeThread = null;
+    }
+
+    function sendReply() {
+      const input = document.getElementById('chat-input');
+      const text = input.value.trim();
+      if (!text || !window._activeThread) return;
+      window._sendReply(window._activeThread.id, text);
+      input.value = '';
+      // Optimistic update
+      window._activeThread.replies = window._activeThread.replies || [];
+      window._activeThread.replies.push({ text, isAdmin: window._isAdmin ? window._isAdmin() : false, userToken: localStorage.getItem('eden-anon-id'), timestamp: new Date().toISOString() });
+      renderChatMessages(window._activeThread);
+    }
+
+    function autoResize(el) {
+      el.style.height = 'auto';
+      el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+    }
+
+    document.getElementById('chat-input').addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendReply(); }
+    });
+
+    document.getElementById('new-thread-modal').addEventListener('click', e => {
+      if (e.target === document.getElementById('new-thread-modal')) closeNewThread();
+    });
+
+    window.filterCat = filterCat;
+    window.openNewThread = openNewThread;
+    window.closeNewThread = closeNewThread;
+    window.selectCat = selectCat;
+    window.sendThread = sendThread;
+    window.openChat = openChat;
+    window.closeChat = closeChat;
+    window.sendReply = sendReply;
+    window.autoResize = autoResize;
+    window.renderThreads = renderThreads;
+  </script>
+</body>
+</html>

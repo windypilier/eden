@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EDEN — Lecture</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=Inter:wght@300;400;500&family=Lora:ital,wght@0,400;0,500;1,400&family=Merriweather:ital,wght@0,300;0,400;1,300&family=Source+Sans+3:wght@300;400&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --gold: #C9A84C;
+      --gold-light: #F0D080;
+      --border-purple: #2A1A6A;
+      --bg-read: #080610;
+      --text-read: rgba(255,255,255,0.88);
+      --font-read: 'Lora', serif;
+      --font-size-read: 17px;
+      --line-height-read: 1.95;
+    }
+
+    html, body { min-height:100%; background:var(--bg-read); color:var(--text-read); font-family:'Inter',sans-serif; transition:background 0.3s, color 0.3s; }
+
+    /* NAV */
+    .top-bar { position:fixed; top:0; left:0; right:0; z-index:100; background:rgba(8,6,16,0.95); backdrop-filter:blur(12px); border-bottom:0.5px solid rgba(42,26,106,0.5); padding:0 1.5rem; height:52px; display:flex; align-items:center; justify-content:space-between; transition:background 0.3s; }
+    .top-left { display:flex; align-items:center; gap:12px; }
+    .nav-back { width:30px; height:30px; border-radius:50%; background:rgba(42,26,106,0.4); border:0.5px solid var(--border-purple); display:flex; align-items:center; justify-content:center; cursor:pointer; text-decoration:none; transition:border-color 0.2s; }
+    .nav-back:hover { border-color:var(--gold); }
+    .nav-back svg { width:13px; height:13px; stroke:rgba(160,140,200,0.7); fill:none; stroke-width:2; }
+    .nav-book-title { font-family:'Cinzel',serif; font-size:12px; color:rgba(201,168,76,0.8); letter-spacing:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:160px; }
+    .top-right { display:flex; align-items:center; gap:8px; }
+    .icon-btn { width:30px; height:30px; border-radius:50%; background:rgba(42,26,106,0.4); border:0.5px solid var(--border-purple); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:border-color 0.2s; }
+    .icon-btn:hover { border-color:var(--gold); }
+    .icon-btn svg { width:14px; height:14px; stroke:rgba(160,140,200,0.7); fill:none; stroke-width:1.5; }
+
+    /* PROGRESS BAR */
+    .progress-bar-wrap { position:fixed; top:52px; left:0; right:0; z-index:99; height:2px; background:rgba(42,26,106,0.4); }
+    .progress-bar-fill { height:100%; background:linear-gradient(90deg,var(--gold),var(--gold-light)); transition:width 0.3s; width:0%; }
+
+    /* CHAPTER HEADER */
+    .chapter-header { max-width:680px; margin:0 auto; padding:6rem 1.5rem 2.5rem; text-align:center; }
+    .ch-number { font-size:10px; color:rgba(201,168,76,0.6); letter-spacing:5px; text-transform:uppercase; margin-bottom:1rem; }
+    .ch-title { font-family:'Cinzel',serif; font-size:clamp(20px,4vw,28px); font-weight:400; color:var(--text-read); letter-spacing:2px; margin-bottom:1rem; line-height:1.4; }
+    .ch-divider { width:40px; height:0.5px; background:linear-gradient(90deg,transparent,var(--gold),transparent); margin:0 auto; }
+
+    /* READING CONTENT */
+    .reading-content { max-width:680px; margin:0 auto; padding:2rem 1.5rem; }
+    .reading-content p { font-family:var(--font-read); font-size:var(--font-size-read); line-height:var(--line-height-read); color:var(--text-read); margin-bottom:1.6em; text-align:justify; }
+    .reading-content p.drop-cap::first-letter { font-family:'Cinzel',serif; font-size:3.5em; float:left; line-height:0.8; margin:0.1em 0.1em 0 0; color:var(--gold); }
+
+    /* PAGINATION MODE */
+    body.paginated .reading-content { display:none; }
+    body.paginated .page-content { display:block; }
+    .page-content { display:none; max-width:680px; margin:0 auto; padding:2rem 1.5rem; }
+    .page-content p { font-family:var(--font-read); font-size:var(--font-size-read); line-height:var(--line-height-read); color:var(--text-read); margin-bottom:1.6em; text-align:justify; }
+    .page-content p.drop-cap::first-letter { font-family:'Cinzel',serif; font-size:3.5em; float:left; line-height:0.8; margin:0.1em 0.1em 0 0; color:var(--gold); }
+    .page-indicator { text-align:center; font-size:10px; color:rgba(201,168,76,0.5); letter-spacing:3px; margin:1rem 0 2rem; }
+
+    /* NAV BUTTONS */
+    .chapter-nav { max-width:680px; margin:0 auto; padding:2rem 1.5rem 5rem; display:flex; gap:12px; }
+    .nav-btn { flex:1; padding:13px; border-radius:8px; font-size:10px; font-family:'Inter',sans-serif; letter-spacing:2px; cursor:pointer; text-transform:uppercase; transition:all 0.2s; display:flex; align-items:center; justify-content:center; gap:8px; }
+    .nav-btn svg { width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:2; }
+    .btn-prev { background:transparent; color:rgba(160,140,200,0.7); border:0.5px solid rgba(42,26,106,0.7); }
+    .btn-prev:hover { border-color:var(--gold); color:var(--gold); }
+    .btn-next { background:linear-gradient(135deg,var(--gold),var(--gold-light)); color:#080610; border:none; font-weight:500; }
+    .btn-next:hover { opacity:0.9; }
+    .btn-next:disabled { opacity:0.4; cursor:not-allowed; }
+
+    /* PAGINATION NAV */
+    .page-nav { position:fixed; bottom:0; left:0; right:0; background:rgba(8,6,16,0.95); backdrop-filter:blur(12px); border-top:0.5px solid rgba(42,26,106,0.5); padding:0.8rem 1.5rem; display:none; align-items:center; justify-content:space-between; gap:12px; }
+    body.paginated .page-nav { display:flex; }
+    body.paginated .chapter-nav { display:none; }
+    .page-btn { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s; }
+    .page-btn.prev { background:rgba(42,26,106,0.4); border:0.5px solid var(--border-purple); }
+    .page-btn.prev:hover { border-color:var(--gold); }
+    .page-btn.next { background:linear-gradient(135deg,var(--gold),var(--gold-light)); border:none; }
+    .page-btn svg { width:14px; height:14px; fill:none; stroke-width:2; }
+    .page-btn.prev svg { stroke:rgba(160,140,200,0.7); }
+    .page-btn.next svg { stroke:#080610; }
+    .page-counter { font-size:11px; color:rgba(201,168,76,0.6); letter-spacing:2px; }
+
+    /* SETTINGS PANEL */
+    .settings-panel { position:fixed; bottom:0; left:0; right:0; z-index:150; background:#0D0A22; border-top:0.5px solid var(--border-purple); border-radius:20px 20px 0 0; padding:1.5rem; transform:translateY(100%); transition:transform 0.35s cubic-bezier(0.4,0,0.2,1); }
+    .settings-panel.open { transform:translateY(0); }
+    .panel-handle { width:36px; height:3px; background:rgba(160,140,200,0.3); border-radius:2px; margin:0 auto 1.5rem; }
+    .panel-title { font-family:'Cinzel',serif; font-size:11px; color:var(--gold); letter-spacing:3px; text-transform:uppercase; margin-bottom:1.5rem; opacity:0.8; text-align:center; }
+
+    .setting-row { margin-bottom:1.5rem; }
+    .setting-row-label { font-size:10px; color:rgba(160,140,200,0.6); letter-spacing:3px; text-transform:uppercase; margin-bottom:0.8rem; }
+
+    /* FONT SELECTOR */
+    .font-options { display:flex; gap:8px; }
+    .font-opt { flex:1; padding:10px 8px; border-radius:8px; border:0.5px solid var(--border-purple); background:transparent; cursor:pointer; text-align:center; transition:all 0.2s; }
+    .font-opt.on { border-color:var(--gold); background:rgba(201,168,76,0.08); }
+    .font-opt-name { font-size:13px; color:rgba(255,255,255,0.8); margin-bottom:3px; }
+    .font-opt-sample { font-size:10px; color:rgba(160,140,200,0.5); }
+    .font-opt-name.serif { font-family:'Lora',serif; }
+    .font-opt-name.sans { font-family:'Source Sans 3',sans-serif; }
+    .font-opt-name.classic { font-family:'Merriweather',serif; }
+
+    /* FONT SIZE */
+    .size-row { display:flex; align-items:center; gap:12px; }
+    .size-btn { width:34px; height:34px; border-radius:50%; border:0.5px solid var(--border-purple); background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:16px; color:rgba(160,140,200,0.8); transition:all 0.2s; }
+    .size-btn:hover { border-color:var(--gold); color:var(--gold); }
+    .size-display { flex:1; text-align:center; font-size:13px; color:rgba(255,255,255,0.8); }
+    .size-bar { flex:1; height:2px; background:var(--border-purple); border-radius:2px; position:relative; }
+    .size-bar-fill { position:absolute; left:0; top:0; height:100%; background:var(--gold); border-radius:2px; transition:width 0.2s; }
+
+    /* THEME */
+    .theme-options { display:flex; gap:8px; }
+    .theme-opt { flex:1; padding:12px 8px; border-radius:8px; border:0.5px solid var(--border-purple); cursor:pointer; text-align:center; transition:all 0.2s; }
+    .theme-opt.on { border-color:var(--gold); }
+    .theme-preview { width:28px; height:28px; border-radius:50%; margin:0 auto 6px; border:1.5px solid rgba(255,255,255,0.1); }
+    .theme-name { font-size:9px; color:rgba(160,140,200,0.7); letter-spacing:1px; }
+
+    /* MODE TOGGLE */
+    .mode-options { display:flex; gap:8px; }
+    .mode-opt { flex:1; padding:10px; border-radius:8px; border:0.5px solid var(--border-purple); background:transparent; cursor:pointer; text-align:center; font-size:11px; color:rgba(160,140,200,0.7); letter-spacing:1px; transition:all 0.2s; display:flex; align-items:center; justify-content:center; gap:6px; }
+    .mode-opt svg { width:13px; height:13px; stroke:currentColor; fill:none; stroke-width:1.5; }
+    .mode-opt.on { border-color:var(--gold); color:var(--gold); }
+
+    /* OVERLAY */
+    .panel-overlay { position:fixed; inset:0; z-index:140; background:rgba(0,0,0,0.5); display:none; }
+    .panel-overlay.open { display:block; }
+
+    /* THEMES */
+    body.theme-dark { --bg-read:#080610; --text-read:rgba(255,255,255,0.88); }
+    body.theme-night { --bg-read:#0D0800; --text-read:#D4C5A0; }
+    body.theme-sepia { --bg-read:#F5EDD6; --text-read:#3D2B1A; }
+    body.theme-light { --bg-read:#F8F8F8; --text-read:#1A1A2E; }
+    body.theme-green { --bg-read:#0A1A0A; --text-read:#C8E6C8; }
+
+    body.theme-sepia .top-bar,
+    body.theme-light .top-bar { background:rgba(245,237,214,0.95); border-bottom-color:rgba(100,80,50,0.2); }
+    body.theme-sepia .nav-book-title,
+    body.theme-light .nav-book-title { color:#8B6914; }
+    body.theme-sepia .icon-btn,
+    body.theme-light .icon-btn { background:rgba(100,80,50,0.1); border-color:rgba(100,80,50,0.3); }
+    body.theme-sepia .icon-btn svg,
+    body.theme-light .icon-btn svg { stroke:rgba(60,40,20,0.6); }
+    body.theme-sepia .nav-back,
+    body.theme-light .nav-back { background:rgba(100,80,50,0.1); border-color:rgba(100,80,50,0.3); }
+    body.theme-sepia .nav-back svg,
+    body.theme-light .nav-back svg { stroke:rgba(60,40,20,0.6); }
+    body.theme-sepia .progress-bar-wrap,
+    body.theme-light .progress-bar-wrap { background:rgba(100,80,50,0.15); }
+    body.theme-light .top-bar { background:rgba(248,248,248,0.95); border-bottom-color:rgba(26,26,46,0.1); }
+    body.theme-light .nav-book-title { color:#8B6914; }
+
+    ::-webkit-scrollbar { width:4px; }
+    ::-webkit-scrollbar-track { background:var(--bg-read); }
+    ::-webkit-scrollbar-thumb { background:rgba(42,26,106,0.5); border-radius:2px; }
+  </style>
+</head>
+<body class="theme-dark">
+
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <div class="top-left">
+      <a class="nav-back" href="livre.html" id="btn-back"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></a>
+      <span class="nav-book-title" id="nav-book-title">La grâce du désert</span>
+    </div>
+    <div class="top-right">
+      <div class="icon-btn" onclick="openSettings()" title="Paramètres de lecture">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROGRESS BAR -->
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-fill" id="progress-bar"></div>
+  </div>
+
+  <!-- CHAPTER HEADER -->
+  <div class="chapter-header">
+    <div class="ch-number" id="ch-number">Chapitre 01</div>
+    <h1 class="ch-title" id="ch-title">Le commencement du silence</h1>
+    <div class="ch-divider"></div>
+  </div>
+
+  <!-- SCROLL MODE CONTENT -->
+  <div class="reading-content" id="scroll-content">
+    <p class="drop-cap">Il y avait dans le cœur de Marie une sécheresse que les prières du dimanche ne parvenaient plus à étancher. Depuis que son mari était parti — non pas par la mort mais par le choix cruel de l'indifférence — elle avait continué d'aller à l'église, de chanter les cantiques, de sourire aux sœurs de la congrégation. Mais en dedans, quelque chose s'était tu.</p>
+
+    <p>Ce silence n'était pas paisible. Il ressemblait plutôt à ces déserts dont elle avait entendu parler dans les sermons — vastes, implacables, où le soleil cogne sans merci et où la soif devient une compagne permanente. Marie connaissait maintenant la géographie de cette terre aride. Elle en avait cartographié chaque dune, chaque crevasse.</p>
+
+    <p>Un matin de mars, alors qu'elle préparait son café dans la cuisine silencieuse, elle ouvrit sa Bible par habitude plutôt que par conviction. Les pages s'ouvrirent sur le psaume 22 : <em>« Mon Dieu, mon Dieu, pourquoi m'as-tu abandonné ? »</em> Elle referma le livre. Trop proche. Trop vrai.</p>
+
+    <p>Sa voisine Élisabeth frappa à la porte ce matin-là. Une femme de soixante-dix ans aux mains rugueuses de jardinière, qui portait des tulipes jaunes dans un pot en terre cuite. « Pour ta fenêtre », dit-elle simplement. « Les fleurs ne demandent pas à comprendre pourquoi le soleil se lève. Elles s'ouvrent, c'est tout. »</p>
+
+    <p>Marie prit le pot. Les tulipes étaient encore fermées, de petits poings jaunes serrés contre l'incertitude du monde. Elle pensa que c'était peut-être là où elle en était elle aussi — pas morte, pas épanouie, mais dans cet entre-deux fragile qui précède l'éclosion.</p>
+
+    <p>Ce soir-là, elle reprit la Bible. Pas au psaume 22 mais au verset qui suivait quelques pages plus loin : <em>« Il n'a pas méprisé ni dédaigné l'affliction du malheureux, et il ne lui a pas caché sa face. »</em> Quelque chose se fissura doucement dans sa poitrine. Pas de manière dramatique. Juste une petite fissure — suffisante pour qu'un filet de lumière entre.</p>
+
+    <p>Le désert ne s'était pas transformé en jardin. Mais pour la première fois depuis longtemps, Marie remarqua que le sol sous ses pieds n'était pas aussi stérile qu'elle le croyait. Il y avait des graines là-dedans. Des graines qui attendaient.</p>
+  </div>
+
+  <!-- PAGINATION MODE CONTENT -->
+  <div class="page-content" id="page-1">
+    <p class="drop-cap">Il y avait dans le cœur de Marie une sécheresse que les prières du dimanche ne parvenaient plus à étancher. Depuis que son mari était parti — non pas par la mort mais par le choix cruel de l'indifférence — elle avait continué d'aller à l'église, de chanter les cantiques, de sourire aux sœurs de la congrégation. Mais en dedans, quelque chose s'était tu.</p>
+    <p>Ce silence n'était pas paisible. Il ressemblait plutôt à ces déserts dont elle avait entendu parler dans les sermons — vastes, implacables, où le soleil cogne sans merci et où la soif devient une compagne permanente.</p>
+    <div class="page-indicator" id="page-indicator-1">1 / 4</div>
+  </div>
+  <div class="page-content" id="page-2">
+    <p>Un matin de mars, alors qu'elle préparait son café dans la cuisine silencieuse, elle ouvrit sa Bible par habitude plutôt que par conviction. Les pages s'ouvrirent sur le psaume 22 : <em>« Mon Dieu, mon Dieu, pourquoi m'as-tu abandonné ? »</em> Elle referma le livre. Trop proche. Trop vrai.</p>
+    <p>Sa voisine Élisabeth frappa à la porte ce matin-là. Une femme de soixante-dix ans aux mains rugueuses de jardinière, qui portait des tulipes jaunes dans un pot en terre cuite. « Pour ta fenêtre », dit-elle simplement. « Les fleurs ne demandent pas à comprendre pourquoi le soleil se lève. Elles s'ouvrent, c'est tout. »</p>
+    <div class="page-indicator" id="page-indicator-2">2 / 4</div>
+  </div>
+  <div class="page-content" id="page-3">
+    <p>Marie prit le pot. Les tulipes étaient encore fermées, de petits poings jaunes serrés contre l'incertitude du monde. Elle pensa que c'était peut-être là où elle en était elle aussi — pas morte, pas épanouie, mais dans cet entre-deux fragile qui précède l'éclosion.</p>
+    <p>Ce soir-là, elle reprit la Bible. Pas au psaume 22 mais au verset qui suivait quelques pages plus loin : <em>« Il n'a pas méprisé ni dédaigné l'affliction du malheureux. »</em></p>
+    <div class="page-indicator" id="page-indicator-3">3 / 4</div>
+  </div>
+  <div class="page-content" id="page-4">
+    <p>Quelque chose se fissura doucement dans sa poitrine. Pas de manière dramatique. Juste une petite fissure — suffisante pour qu'un filet de lumière entre.</p>
+    <p>Le désert ne s'était pas transformé en jardin. Mais pour la première fois depuis longtemps, Marie remarqua que le sol sous ses pieds n'était pas aussi stérile qu'elle le croyait. Il y avait des graines là-dedans. Des graines qui attendaient.</p>
+    <div class="page-indicator" id="page-indicator-4">4 / 4</div>
+  </div>
+
+  <!-- CHAPTER NAV (scroll mode) -->
+  <div class="chapter-nav" id="chapter-nav">
+    <button class="nav-btn btn-prev" id="btn-prev-ch" onclick="prevChapter()">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      <span id="label-prev">Chapitre précédent</span>
+    </button>
+    <button class="nav-btn btn-next" id="btn-next-ch" onclick="nextChapter()">
+      <span id="label-next">Chapitre suivant</span>
+      <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+  </div>
+
+  <!-- PAGE NAV (pagination mode) -->
+  <div class="page-nav" id="page-nav">
+    <div class="page-btn prev" onclick="prevPage()"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></div>
+    <span class="page-counter" id="page-counter">1 / 4</span>
+    <div class="page-btn next" onclick="nextPage()"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+  </div>
+
+  <!-- SETTINGS OVERLAY -->
+  <div class="panel-overlay" id="panel-overlay" onclick="closeSettings()"></div>
+
+  <!-- SETTINGS PANEL -->
+  <div class="settings-panel" id="settings-panel">
+    <div class="panel-handle"></div>
+    <div class="panel-title" id="panel-title">Paramètres de lecture</div>
+
+    <!-- READING MODE -->
+    <div class="setting-row">
+      <div class="setting-row-label" id="label-mode">Mode de lecture</div>
+      <div class="mode-options">
+        <div class="mode-opt on" id="mode-scroll" onclick="setMode('scroll')">
+          <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><polyline points="3 6 4 7 6 5"/><polyline points="3 12 4 13 6 11"/><polyline points="3 18 4 19 6 17"/></svg>
+          <span id="label-scroll">Scroll</span>
+        </div>
+        <div class="mode-opt" id="mode-page" onclick="setMode('page')">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <span id="label-page">Pages</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- FONT -->
+    <div class="setting-row">
+      <div class="setting-row-label" id="label-font">Police</div>
+      <div class="font-options">
+        <div class="font-opt on" onclick="setFont('lora','Lora')" id="font-lora">
+          <div class="font-opt-name serif">Lora</div>
+          <div class="font-opt-sample">Aa</div>
+        </div>
+        <div class="font-opt" onclick="setFont('merriweather','Merriweather')" id="font-merriweather">
+          <div class="font-opt-name classic">Merri</div>
+          <div class="font-opt-sample">Aa</div>
+        </div>
+        <div class="font-opt" onclick="setFont('source','Source Sans 3')" id="font-source">
+          <div class="font-opt-name sans">Sans</div>
+          <div class="font-opt-sample">Aa</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FONT SIZE -->
+    <div class="setting-row">
+      <div class="setting-row-label" id="label-size">Taille du texte</div>
+      <div class="size-row">
+        <button class="size-btn" onclick="changeSize(-1)">A−</button>
+        <div class="size-bar"><div class="size-bar-fill" id="size-bar-fill" style="width:40%"></div></div>
+        <button class="size-btn" onclick="changeSize(1)">A+</button>
+      </div>
+    </div>
+
+    <!-- THEME -->
+    <div class="setting-row">
+      <div class="setting-row-label" id="label-theme">Thème</div>
+      <div class="theme-options">
+        <div class="theme-opt on" onclick="setTheme('dark')" id="theme-dark">
+          <div class="theme-preview" style="background:#080610;border-color:rgba(201,168,76,0.4);"></div>
+          <div class="theme-name" id="t-dark">Nuit</div>
+        </div>
+        <div class="theme-opt" onclick="setTheme('night')" id="theme-night">
+          <div class="theme-preview" style="background:#0D0800;"></div>
+          <div class="theme-name" id="t-night">Sépia</div>
+        </div>
+        <div class="theme-opt" onclick="setTheme('sepia')" id="theme-sepia">
+          <div class="theme-preview" style="background:#F5EDD6;"></div>
+          <div class="theme-name" id="t-sepia">Crème</div>
+        </div>
+        <div class="theme-opt" onclick="setTheme('light')" id="theme-light">
+          <div class="theme-preview" style="background:#F8F8F8;"></div>
+          <div class="theme-name" id="t-light">Jour</div>
+        </div>
+        <div class="theme-opt" onclick="setTheme('green')" id="theme-green">
+          <div class="theme-preview" style="background:#0A1A0A;"></div>
+          <div class="theme-name" id="t-green">Forêt</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // TRANSLATIONS
+    const T = {
+      fr: {
+        ch_prefix: 'Chapitre', prev_ch: 'Chapitre précédent', next_ch: 'Chapitre suivant',
+        settings: 'Paramètres de lecture', mode: 'Mode de lecture', scroll: 'Scroll', pages: 'Pages',
+        font: 'Police', size: 'Taille du texte', theme: 'Thème',
+        t_dark:'Nuit', t_night:'Sépia foncé', t_sepia:'Crème', t_light:'Jour', t_green:'Forêt'
+      },
+      es: {
+        ch_prefix: 'Capítulo', prev_ch: 'Capítulo anterior', next_ch: 'Capítulo siguiente',
+        settings: 'Ajustes de lectura', mode: 'Modo de lectura', scroll: 'Scroll', pages: 'Páginas',
+        font: 'Fuente', size: 'Tamaño del texto', theme: 'Tema',
+        t_dark:'Noche', t_night:'Sepia oscuro', t_sepia:'Crema', t_light:'Día', t_green:'Bosque'
+      },
+      en: {
+        ch_prefix: 'Chapter', prev_ch: 'Previous chapter', next_ch: 'Next chapter',
+        settings: 'Reading settings', mode: 'Reading mode', scroll: 'Scroll', pages: 'Pages',
+        font: 'Font', size: 'Text size', theme: 'Theme',
+        t_dark:'Night', t_night:'Dark sepia', t_sepia:'Cream', t_light:'Day', t_green:'Forest'
+      }
+    };
+
+    const lang = localStorage.getItem('eden-lang') || 'fr';
+    const t = T[lang] || T.fr;
+
+    // Apply translations
+    document.getElementById('panel-title').textContent = t.settings;
+    document.getElementById('label-mode').textContent = t.mode;
+    document.getElementById('label-scroll').textContent = t.scroll;
+    document.getElementById('label-page').textContent = t.pages;
+    document.getElementById('label-font').textContent = t.font;
+    document.getElementById('label-size').textContent = t.size;
+    document.getElementById('label-theme').textContent = t.theme;
+    document.getElementById('label-prev').textContent = t.prev_ch;
+    document.getElementById('label-next').textContent = t.next_ch;
+    document.getElementById('t-dark').textContent = t.t_dark;
+    document.getElementById('t-night').textContent = t.t_night;
+    document.getElementById('t-sepia').textContent = t.t_sepia;
+    document.getElementById('t-light').textContent = t.t_light;
+    document.getElementById('t-green').textContent = t.t_green;
+
+    // Get URL params
+    const params = new URLSearchParams(window.location.search);
+    const bookId = params.get('book') || 'grace-desert';
+    const chNum = parseInt(params.get('ch')) || 1;
+
+    document.getElementById('ch-number').textContent = t.ch_prefix + ' ' + String(chNum).padStart(2,'0');
+
+    // Load saved reading prefs
+    const savedFont = localStorage.getItem('eden-font') || 'lora';
+    const savedTheme = localStorage.getItem('eden-theme') || 'dark';
+    const savedSize = parseInt(localStorage.getItem('eden-fontsize')) || 17;
+    const savedMode = localStorage.getItem('eden-mode') || 'scroll';
+
+    let currentFont = savedFont;
+    let currentTheme = savedTheme;
+    let currentSize = savedSize;
+    let currentMode = savedMode;
+    let currentPage = 1;
+    const totalPages = 4;
+
+    // Apply on load
+    applyFont(currentFont);
+    applyTheme(currentTheme);
+    applySize(currentSize);
+    applyMode(currentMode);
+
+    // SCROLL PROGRESS
+    window.addEventListener('scroll', () => {
+      if (currentMode !== 'scroll') return;
+      const scrollTop = window.scrollY;
+      const docHeight = document.body.scrollHeight - window.innerHeight;
+      const pct = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+      document.getElementById('progress-bar').style.width = pct + '%';
+    });
+
+    // SETTINGS PANEL
+    function openSettings() {
+      document.getElementById('settings-panel').classList.add('open');
+      document.getElementById('panel-overlay').classList.add('open');
+    }
+    function closeSettings() {
+      document.getElementById('settings-panel').classList.remove('open');
+      document.getElementById('panel-overlay').classList.remove('open');
+    }
+
+    // MODE
+    function setMode(mode) {
+      currentMode = mode;
+      localStorage.setItem('eden-mode', mode);
+      applyMode(mode);
+    }
+    function applyMode(mode) {
+      document.getElementById('mode-scroll').classList.toggle('on', mode === 'scroll');
+      document.getElementById('mode-page').classList.toggle('on', mode === 'page');
+      if (mode === 'paginated' || mode === 'page') {
+        document.body.classList.add('paginated');
+        showPage(currentPage);
+      } else {
+        document.body.classList.remove('paginated');
+        document.getElementById('progress-bar').style.width = '0%';
+      }
+    }
+
+    // PAGINATION
+    function showPage(n) {
+      for (let i = 1; i <= totalPages; i++) {
+        const el = document.getElementById('page-' + i);
+        if (el) el.style.display = i === n ? 'block' : 'none';
+      }
+      document.getElementById('page-counter').textContent = n + ' / ' + totalPages;
+      document.getElementById('progress-bar').style.width = (n / totalPages * 100) + '%';
+      window.scrollTo(0, 0);
+    }
+    function nextPage() {
+      if (currentPage < totalPages) { currentPage++; showPage(currentPage); }
+      else nextChapter();
+    }
+    function prevPage() {
+      if (currentPage > 1) { currentPage--; showPage(currentPage); }
+      else prevChapter();
+    }
+
+    // FONT
+    function setFont(id, family) {
+      currentFont = id;
+      localStorage.setItem('eden-font', id);
+      applyFont(id);
+    }
+    function applyFont(id) {
+      const map = { lora:"'Lora',serif", merriweather:"'Merriweather',serif", source:"'Source Sans 3',sans-serif" };
+      document.documentElement.style.setProperty('--font-read', map[id] || map.lora);
+      ['lora','merriweather','source'].forEach(f => document.getElementById('font-'+f)?.classList.toggle('on', f === id));
+    }
+
+    // SIZE
+    const sizes = [13,14,15,16,17,18,19,20,22,24];
+    function changeSize(dir) {
+      let idx = sizes.indexOf(currentSize);
+      idx = Math.max(0, Math.min(sizes.length-1, idx + dir));
+      currentSize = sizes[idx];
+      localStorage.setItem('eden-fontsize', currentSize);
+      applySize(currentSize);
+    }
+    function applySize(size) {
+      document.documentElement.style.setProperty('--font-size-read', size + 'px');
+      const idx = sizes.indexOf(size);
+      const pct = idx / (sizes.length-1) * 100;
+      document.getElementById('size-bar-fill').style.width = pct + '%';
+    }
+
+    // THEME
+    function setTheme(theme) {
+      currentTheme = theme;
+      localStorage.setItem('eden-theme', theme);
+      applyTheme(theme);
+    }
+    function applyTheme(theme) {
+      ['dark','night','sepia','light','green'].forEach(t => {
+        document.body.classList.remove('theme-'+t);
+        document.getElementById('theme-'+t)?.classList.toggle('on', t === theme);
+      });
+      document.body.classList.add('theme-'+theme);
+    }
+
+    // CHAPTER NAV
+    function nextChapter() { window.location.href = 'lecture.html?book=' + bookId + '&ch=' + (chNum+1); }
+    function prevChapter() {
+      if (chNum > 1) window.location.href = 'lecture.html?book=' + bookId + '&ch=' + (chNum-1);
+      else window.location.href = 'livre.html';
+    }
+
+    if (chNum <= 1) document.getElementById('btn-prev-ch').style.opacity = '0.3';
+
+    window.openSettings = openSettings;
+    window.closeSettings = closeSettings;
+    window.setMode = setMode;
+    window.setFont = setFont;
+    window.changeSize = changeSize;
+    window.setTheme = setTheme;
+    window.nextChapter = nextChapter;
+    window.prevChapter = prevChapter;
+    window.nextPage = nextPage;
+    window.prevPage = prevPage;
+  </script>
+</body>
+</html>

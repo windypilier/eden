@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EDEN — La grâce du désert</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --gold: #C9A84C; --gold-light: #F0D080; --bg-deep: #0E0828; --border-purple: #2A1A6A; }
+    html, body { min-height:100%; background:radial-gradient(ellipse at top,#2A1B6A 0%,#160D42 55%,#0E0828 100%); color:#fff; font-family:'Inter',sans-serif; font-weight:300; padding-bottom:40px; }
+
+    /* NAV */
+    nav { position:sticky; top:0; z-index:100; background:rgba(14,8,40,0.92); backdrop-filter:blur(12px); border-bottom:0.5px solid var(--border-purple); padding:0 1.5rem; height:54px; display:flex; align-items:center; justify-content:space-between; }
+    .nav-left { display:flex; align-items:center; gap:14px; }
+    .nav-back { width:32px; height:32px; border-radius:50%; background:var(--bg-deep); border:0.5px solid var(--border-purple); display:flex; align-items:center; justify-content:center; cursor:pointer; text-decoration:none; transition:border-color 0.2s; }
+    .nav-back:hover { border-color:var(--gold); }
+    .nav-back svg { width:14px; height:14px; stroke:rgba(160,140,200,0.7); fill:none; stroke-width:2; }
+    .nav-logo { font-family:'Cinzel',serif; font-size:18px; font-weight:400; letter-spacing:5px; color:var(--gold); text-decoration:none; }
+    .nav-right { display:flex; align-items:center; gap:10px; }
+    .nav-icon { width:32px; height:32px; border-radius:50%; background:var(--bg-deep); border:0.5px solid var(--border-purple); display:flex; align-items:center; justify-content:center; cursor:pointer; text-decoration:none; transition:border-color 0.2s; }
+    .nav-icon:hover { border-color:var(--gold); }
+    .nav-icon svg { width:15px; height:15px; stroke:rgba(160,140,200,0.7); fill:none; stroke-width:1.5; }
+    .nav-avatar { width:32px; height:32px; border-radius:50%; border:1.5px solid var(--gold); object-fit:cover; }
+
+    /* HERO */
+    .book-hero { background:radial-gradient(ellipse at center,#2E1E72 0%,#1B1147 60%,#130C3A 100%); padding:2.5rem 1.5rem 2rem; position:relative; overflow:hidden; }
+    .hero-blob { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:400px; height:200px; background:#3A2480; border-radius:50%; opacity:0.3; pointer-events:none; filter:blur(50px); }
+    .hero-inner { position:relative; z-index:2; display:flex; gap:1.5rem; align-items:flex-start; max-width:700px; margin:0 auto; }
+
+    /* COVER */
+    .book-cover-wrap { flex-shrink:0; }
+    .book-cover { width:120px; height:175px; border-radius:8px; overflow:hidden; border:1px solid rgba(201,168,76,0.3); box-shadow:0 8px 32px rgba(0,0,0,0.5); position:relative; display:flex; align-items:center; justify-content:center; }
+    .book-cover img { width:100%; height:100%; object-fit:cover; }
+    .book-cover-placeholder { width:100%; height:100%; display:flex; align-items:center; justify-content:center; }
+    .book-cover-placeholder svg { width:36px; height:36px; stroke:rgba(201,168,76,0.3); fill:none; stroke-width:1.2; }
+    .cover-bg { background:linear-gradient(145deg,#2A1870,#3E2A98); }
+    .lang-pill { position:absolute; top:8px; right:8px; background:var(--gold); color:#160D42; font-size:8px; padding:3px 8px; border-radius:10px; font-weight:600; letter-spacing:1px; }
+
+    /* BOOK INFO */
+    .book-info { flex:1; min-width:0; padding-top:0.3rem; }
+    .book-genre-tag { display:inline-block; background:rgba(201,168,76,0.12); border:0.5px solid rgba(201,168,76,0.3); color:var(--gold); font-size:9px; padding:3px 10px; border-radius:10px; letter-spacing:2px; text-transform:uppercase; margin-bottom:0.8rem; }
+    .book-title { font-family:'Cinzel',serif; font-size:clamp(18px,4vw,26px); font-weight:400; color:#fff; letter-spacing:1px; margin-bottom:0.4rem; line-height:1.3; }
+    .book-author { font-size:12px; color:rgba(255,255,255,0.5); margin-bottom:1rem; letter-spacing:0.5px; }
+    .book-stats { display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:1.2rem; }
+    .stat-pill { display:flex; align-items:center; gap:5px; font-size:10px; color:rgba(255,255,255,0.6); }
+    .stat-pill svg { width:12px; height:12px; stroke:var(--gold); fill:none; stroke-width:1.5; }
+
+    /* STATUS BADGE */
+    .status-badge { display:inline-flex; align-items:center; gap:5px; font-size:9px; padding:4px 10px; border-radius:10px; letter-spacing:1px; text-transform:uppercase; }
+    .status-ongoing { background:rgba(100,180,100,0.15); border:0.5px solid rgba(100,180,100,0.3); color:#7EC87E; }
+    .status-finished { background:rgba(201,168,76,0.15); border:0.5px solid rgba(201,168,76,0.3); color:var(--gold); }
+    .status-dot { width:5px; height:5px; border-radius:50%; }
+    .status-ongoing .status-dot { background:#7EC87E; }
+    .status-finished .status-dot { background:var(--gold); }
+
+    /* READING PROGRESS */
+    .reading-progress { margin-top:1rem; }
+    .prog-row { display:flex; justify-content:space-between; font-size:10px; color:rgba(255,255,255,0.5); margin-bottom:5px; }
+    .prog-bar { height:3px; background:var(--border-purple); border-radius:2px; overflow:hidden; }
+    .prog-fill { height:100%; background:linear-gradient(90deg,var(--gold),var(--gold-light)); border-radius:2px; transition:width 0.4s; }
+
+    /* MAIN CONTENT */
+    .main { max-width:700px; margin:0 auto; padding:1.5rem; }
+
+    /* ACTION BUTTONS */
+    .action-btns { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:2rem; }
+    .btn-primary { flex:1; min-width:140px; background:linear-gradient(135deg,var(--gold),var(--gold-light)); color:#160D42; border:none; padding:13px 20px; border-radius:8px; font-size:11px; font-family:'Inter',sans-serif; letter-spacing:2px; cursor:pointer; text-transform:uppercase; font-weight:500; display:flex; align-items:center; justify-content:center; gap:8px; transition:opacity 0.2s; }
+    .btn-primary:hover { opacity:0.9; }
+    .btn-primary svg { width:15px; height:15px; stroke:currentColor; fill:none; stroke-width:2; }
+    .btn-secondary { flex:1; min-width:120px; background:transparent; color:#fff; border:0.5px solid rgba(255,255,255,0.3); padding:13px 20px; border-radius:8px; font-size:11px; font-family:'Inter',sans-serif; letter-spacing:2px; cursor:pointer; text-transform:uppercase; display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s; }
+    .btn-secondary:hover { border-color:var(--gold); color:var(--gold); }
+    .btn-secondary svg { width:15px; height:15px; stroke:currentColor; fill:none; stroke-width:1.5; }
+    .btn-library { border-color:rgba(201,168,76,0.4); color:var(--gold); }
+    .btn-library.added { background:rgba(201,168,76,0.1); }
+
+    /* RÉSUMÉ */
+    .section-card { background:rgba(14,8,40,0.7); border:0.5px solid var(--border-purple); border-radius:16px; overflow:hidden; margin-bottom:1.5rem; }
+    .section-head { padding:1rem 1.5rem; border-bottom:0.5px solid var(--border-purple); display:flex; align-items:center; justify-content:space-between; }
+    .section-title { font-family:'Cinzel',serif; font-size:11px; letter-spacing:3px; color:var(--gold); text-transform:uppercase; opacity:0.8; }
+    .resume-text { padding:1.5rem; font-size:13px; color:rgba(255,255,255,0.75); line-height:1.9; }
+
+    /* CHAPTERS */
+    .chapter-item { display:flex; align-items:center; gap:1rem; padding:1rem 1.5rem; border-bottom:0.5px solid rgba(42,26,106,0.4); cursor:pointer; transition:background 0.2s; text-decoration:none; }
+    .chapter-item:last-child { border-bottom:none; }
+    .chapter-item:hover { background:rgba(42,26,106,0.3); }
+    .chapter-num { font-family:'Cinzel',serif; font-size:11px; color:rgba(201,168,76,0.6); min-width:32px; }
+    .chapter-info { flex:1; min-width:0; }
+    .chapter-title { font-size:13px; color:#fff; font-weight:400; margin-bottom:3px; }
+    .chapter-meta { font-size:10px; color:rgba(255,255,255,0.35); }
+    .chapter-status { flex-shrink:0; }
+    .ch-done { width:18px; height:18px; border-radius:50%; background:rgba(201,168,76,0.15); border:0.5px solid var(--gold); display:flex; align-items:center; justify-content:center; }
+    .ch-done svg { width:10px; height:10px; stroke:var(--gold); fill:none; stroke-width:2.5; }
+    .ch-current { width:18px; height:18px; border-radius:50%; background:var(--gold); display:flex; align-items:center; justify-content:center; }
+    .ch-current svg { width:10px; height:10px; stroke:#160D42; fill:none; stroke-width:2.5; }
+    .ch-locked { width:18px; height:18px; border-radius:50%; background:rgba(42,26,106,0.5); border:0.5px solid var(--border-purple); display:flex; align-items:center; justify-content:center; }
+    .ch-locked svg { width:10px; height:10px; stroke:rgba(160,140,200,0.3); fill:none; stroke-width:2; }
+
+    /* SHARE MODAL */
+    .modal-overlay { position:fixed; inset:0; background:rgba(10,6,30,0.85); backdrop-filter:blur(6px); z-index:200; display:none; align-items:center; justify-content:center; padding:1.5rem; }
+    .modal-overlay.open { display:flex; }
+    .modal { background:#160D42; border:0.5px solid var(--border-purple); border-radius:16px; padding:2rem; max-width:340px; width:100%; text-align:center; }
+    .modal-title { font-family:'Cinzel',serif; font-size:14px; color:#fff; margin-bottom:1.5rem; letter-spacing:1px; }
+    .share-link { background:rgba(42,26,106,0.5); border:0.5px solid var(--border-purple); border-radius:8px; padding:10px 14px; font-size:11px; color:rgba(255,255,255,0.6); word-break:break-all; margin-bottom:1rem; text-align:left; }
+    .share-btns { display:flex; gap:8px; }
+    .share-btn { flex:1; padding:11px; border-radius:8px; font-size:11px; font-family:'Inter',sans-serif; letter-spacing:1px; cursor:pointer; text-transform:uppercase; border:0.5px solid var(--border-purple); background:transparent; color:rgba(160,140,200,0.8); transition:all 0.2s; }
+    .share-btn.copy { background:linear-gradient(135deg,var(--gold),var(--gold-light)); color:#160D42; border:none; font-weight:500; }
+    .share-btn:hover:not(.copy) { border-color:var(--gold); color:var(--gold); }
+
+    ::-webkit-scrollbar { width:4px; }
+    ::-webkit-scrollbar-track { background:var(--bg-deep); }
+    ::-webkit-scrollbar-thumb { background:var(--border-purple); border-radius:2px; }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-left">
+      <a class="nav-back" href="index.html"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></a>
+      <a class="nav-logo" href="index.html">EDEN</a>
+    </div>
+    <div class="nav-right">
+      <div class="nav-icon" id="nav-user-btn">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <div class="book-hero">
+    <div class="hero-blob"></div>
+    <div class="hero-inner">
+      <div class="book-cover-wrap">
+        <div class="book-cover cover-bg" id="book-cover">
+          <span class="lang-pill" id="book-lang">FR</span>
+          <div class="book-cover-placeholder">
+            <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          </div>
+        </div>
+      </div>
+      <div class="book-info">
+        <div class="book-genre-tag" id="book-genre">Témoignage</div>
+        <h1 class="book-title" id="book-title">La grâce du désert</h1>
+        <div class="book-author" id="book-author">par Windy</div>
+        <div class="book-stats">
+          <div class="stat-pill">
+            <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            <span id="book-chapters-count">12 chapitres</span>
+          </div>
+          <div class="stat-pill">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span id="book-read-time">~4h de lecture</span>
+          </div>
+        </div>
+        <div class="status-badge status-ongoing" id="book-status">
+          <div class="status-dot"></div>
+          En cours de publication
+        </div>
+        <div class="reading-progress" id="reading-progress" style="display:none;">
+          <div class="prog-row">
+            <span id="prog-label">Ta progression</span>
+            <span id="prog-pct">0%</span>
+          </div>
+          <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- ACTION BUTTONS -->
+    <div class="action-btns">
+      <button class="btn-primary" id="btn-read" onclick="startReading()">
+        <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <span id="btn-read-label">Commencer à lire</span>
+      </button>
+      <button class="btn-secondary btn-library" id="btn-library" onclick="toggleLibrary()">
+        <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        <span id="btn-library-label">Ajouter</span>
+      </button>
+      <button class="btn-secondary" onclick="openShare()">
+        <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        Partager
+      </button>
+    </div>
+
+    <!-- RÉSUMÉ -->
+    <div class="section-card">
+      <div class="section-head">
+        <span class="section-title">Résumé</span>
+      </div>
+      <div class="resume-text" id="book-summary">
+        Dans les vastes étendues arides d'une foi mise à l'épreuve, Marie découvre que les saisons de sécheresse spirituelle cachent souvent les plus profondes racines de la grâce. À travers des épreuves qui la mènent au bord du gouffre, elle apprend que la confiance en Dieu ne se mesure pas à l'intensité de nos émotions, mais à la fidélité de nos pas — même dans l'obscurité.
+
+        Une histoire de résilience, de foi et de restauration divine qui touchera chaque cœur ayant traversé le désert de l'âme.
+      </div>
+    </div>
+
+    <!-- CHAPITRES -->
+    <div class="section-card">
+      <div class="section-head">
+        <span class="section-title">Chapitres</span>
+        <span style="font-size:10px;color:rgba(255,255,255,0.35);" id="chapters-progress-label">1 / 12 lus</span>
+      </div>
+      <div id="chapters-list">
+
+        <a class="chapter-item" href="lecture.html?book=grace-desert&ch=1">
+          <div class="chapter-num">01</div>
+          <div class="chapter-info">
+            <div class="chapter-title">Le commencement du silence</div>
+            <div class="chapter-meta">~18 min de lecture</div>
+          </div>
+          <div class="chapter-status">
+            <div class="ch-done"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          </div>
+        </a>
+
+        <a class="chapter-item" href="lecture.html?book=grace-desert&ch=2">
+          <div class="chapter-num">02</div>
+          <div class="chapter-info">
+            <div class="chapter-title">Les racines invisibles</div>
+            <div class="chapter-meta">~22 min de lecture</div>
+          </div>
+          <div class="chapter-status">
+            <div class="ch-current"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+          </div>
+        </a>
+
+        <a class="chapter-item" href="lecture.html?book=grace-desert&ch=3">
+          <div class="chapter-num">03</div>
+          <div class="chapter-info">
+            <div class="chapter-title">La nuit de Gethsémani</div>
+            <div class="chapter-meta">~20 min de lecture</div>
+          </div>
+          <div class="chapter-status">
+            <div class="ch-locked"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+          </div>
+        </a>
+
+        <a class="chapter-item" href="lecture.html?book=grace-desert&ch=4">
+          <div class="chapter-num">04</div>
+          <div class="chapter-info">
+            <div class="chapter-title">La voix dans le vent</div>
+            <div class="chapter-meta">~25 min de lecture</div>
+          </div>
+          <div class="chapter-status">
+            <div class="ch-locked"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+          </div>
+        </a>
+
+        <a class="chapter-item" href="lecture.html?book=grace-desert&ch=5">
+          <div class="chapter-num">05</div>
+          <div class="chapter-info">
+            <div class="chapter-title">Eau vive</div>
+            <div class="chapter-meta">~19 min de lecture</div>
+          </div>
+          <div class="chapter-status">
+            <div class="ch-locked"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+          </div>
+        </a>
+
+        <div class="chapter-item" style="justify-content:center;color:rgba(255,255,255,0.3);font-size:11px;letter-spacing:2px;cursor:default;">
+          + 7 chapitres à venir
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- SHARE MODAL -->
+  <div class="modal-overlay" id="share-modal">
+    <div class="modal">
+      <div class="modal-title">Partager ce livre</div>
+      <div class="share-link" id="share-url">eden-christianstories.com/livre.html?book=grace-desert</div>
+      <div class="share-btns">
+        <button class="share-btn" onclick="document.getElementById('share-modal').classList.remove('open')">Fermer</button>
+        <button class="share-btn copy" id="copy-btn" onclick="copyLink()">Copier le lien</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAHhYlri1s8EldAGRa7IaVr1vI_1R2Q0Lo",
+      authDomain: "eden-christianstories-36fe6.firebaseapp.com",
+      projectId: "eden-christianstories-36fe6",
+      storageBucket: "eden-christianstories-36fe6.firebasestorage.app",
+      messagingSenderId: "1051577294784",
+      appId: "1:1051577294784:web:b62cb060b6909627e8f225"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const BOOK_ID = 'grace-desert';
+    const BOOK_DATA = {
+      id: BOOK_ID,
+      title: 'La grâce du désert',
+      chapter: 'Ch. 2 / 12',
+      progress: 8,
+      chaptersRead: 1,
+      lastRead: 'Aujourd\'hui'
+    };
+
+    let currentUser = null;
+    let isInLibrary = false;
+
+    onAuthStateChanged(auth, async (user) => {
+      currentUser = user;
+      const navBtn = document.getElementById('nav-user-btn');
+      if (user) {
+        if (user.photoURL) {
+          navBtn.innerHTML = `<a href="profil.html"><img src="${user.photoURL}" class="nav-avatar" alt="${user.displayName}"/></a>`;
+        } else {
+          navBtn.outerHTML = `<a href="profil.html" class="nav-icon" style="font-family:Cinzel,serif;font-size:12px;color:var(--gold);text-decoration:none;">${user.displayName?.[0]?.toUpperCase()||'U'}</a>`;
+        }
+        // Check if book is in library
+        try {
+          const userRef = doc(db, "users", user.uid);
+          const snap = await getDoc(userRef);
+          if (snap.exists()) {
+            const lib = snap.data().library || [];
+            isInLibrary = lib.some(b => b.id === BOOK_ID);
+            updateLibraryBtn();
+            // Show progress if in library
+            const bookEntry = lib.find(b => b.id === BOOK_ID);
+            if (bookEntry) {
+              document.getElementById('reading-progress').style.display = 'block';
+              document.getElementById('prog-pct').textContent = (bookEntry.progress || 0) + '%';
+              document.getElementById('prog-fill').style.width = (bookEntry.progress || 0) + '%';
+              document.getElementById('btn-read-label').textContent = window._livre_t?.cont || 'Continuer';
+            }
+          }
+        } catch(e) { console.error(e); }
+      }
+    });
+
+    function updateLibraryBtn() {
+      const btn = document.getElementById('btn-library');
+      const label = document.getElementById('btn-library-label');
+      const t = window._livre_t;
+      if (!t) return;
+      if (isInLibrary) {
+        btn.classList.add('added');
+        label.textContent = t.inLib;
+      } else {
+        btn.classList.remove('added');
+        label.textContent = t.add;
+      }
+    }
+
+    window._toggleLibrary = async () => {
+      if (!currentUser) {
+        alert('Connecte-toi pour ajouter un livre à ta bibliothèque.');
+        return;
+      }
+      const userRef = doc(db, "users", currentUser.uid);
+      try {
+        if (isInLibrary) {
+          const snap = await getDoc(userRef);
+          const lib = (snap.data().library || []).filter(b => b.id !== BOOK_ID);
+          await updateDoc(userRef, { library: lib });
+          isInLibrary = false;
+        } else {
+          const snap = await getDoc(userRef);
+          const lib = snap.data().library || [];
+          lib.push(BOOK_DATA);
+          await updateDoc(userRef, { library: lib });
+          isInLibrary = true;
+        }
+        updateLibraryBtn();
+      } catch(e) { console.error(e); }
+    };
+  </script>
+
+  <script>
+    const savedLang = localStorage.getItem('eden-lang') || 'fr';
+    const translations = {
+      fr: {
+        read:'Commencer à lire', cont:'Continuer', add:'Ajouter', inLib:'Dans ma bibliothèque',
+        share:'Partager', prog:'Ta progression', chaps:'lus',
+        by:'par', chapters:'chapitres', read_time:'de lecture',
+        ongoing:'En cours de publication', finished:'Terminé',
+        summary:'Résumé', chapters_title:'Chapitres', chapters_read:'lus',
+        copy:'Copier le lien', copied:'✓ Copié !', close:'Fermer',
+        share_title:'Partager ce livre',
+        ch_done:'lu', ch_more:'chapitres à venir'
+      },
+      es: {
+        read:'Empezar a leer', cont:'Continuar', add:'Agregar', inLib:'En mi biblioteca',
+        share:'Compartir', prog:'Tu progreso', chaps:'leídos',
+        by:'por', chapters:'capítulos', read_time:'de lectura',
+        ongoing:'En curso de publicación', finished:'Terminado',
+        summary:'Resumen', chapters_title:'Capítulos', chapters_read:'leídos',
+        copy:'Copiar enlace', copied:'✓ Copiado !', close:'Cerrar',
+        share_title:'Compartir este libro',
+        ch_done:'leído', ch_more:'capítulos próximamente'
+      },
+      en: {
+        read:'Start reading', cont:'Continue', add:'Add', inLib:'In my library',
+        share:'Share', prog:'Your progress', chaps:'read',
+        by:'by', chapters:'chapters', read_time:'reading',
+        ongoing:'Ongoing publication', finished:'Completed',
+        summary:'Summary', chapters_title:'Chapters', chapters_read:'read',
+        copy:'Copy link', copied:'✓ Copied!', close:'Close',
+        share_title:'Share this book',
+        ch_done:'read', ch_more:'chapters coming soon'
+      }
+    };
+    const t = translations[savedLang] || translations.fr;
+    window._livre_t = t;
+
+    // Apply translations on DOM load
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('btn-read-label').textContent = t.read;
+      document.getElementById('btn-library-label').textContent = t.add;
+      document.querySelector('#btn-prev-ch span') && (document.querySelector('#btn-prev-ch span').textContent = t.share);
+      // Buttons
+      const shareBtns = document.querySelectorAll('.btn-secondary:not(.btn-library) span');
+      if (shareBtns.length) shareBtns[0].textContent = t.share;
+      // Section titles
+      const sectionTitles = document.querySelectorAll('.section-title');
+      if (sectionTitles[0]) sectionTitles[0].textContent = t.summary;
+      if (sectionTitles[1]) sectionTitles[1].textContent = t.chapters_title;
+      // Progress label
+      const progLabel = document.getElementById('prog-label');
+      if (progLabel) progLabel.textContent = t.prog;
+      // Status
+      const status = document.getElementById('book-status');
+      if (status && status.classList.contains('status-ongoing')) {
+        status.innerHTML = `<div class="status-dot"></div>${t.ongoing}`;
+      }
+      // Share modal
+      const shareTitle = document.querySelector('.modal-title');
+      if (shareTitle) shareTitle.textContent = t.share_title;
+      const shareBtnClose = document.querySelector('.share-btn:not(.copy)');
+      if (shareBtnClose) shareBtnClose.textContent = t.close;
+      const copyBtn = document.getElementById('copy-btn');
+      if (copyBtn) copyBtn.textContent = t.copy;
+      // Chapters progress label
+      const chProgressLabel = document.getElementById('chapters-progress-label');
+      if (chProgressLabel) chProgressLabel.textContent = `1 / 12 ${t.chapters_read}`;
+    });
+
+    function startReading() { window.location.href = 'lecture.html?book=grace-desert&ch=1'; }
+    function toggleLibrary() { if (window._toggleLibrary) window._toggleLibrary(); }
+
+    function openShare() {
+      const url = window.location.href;
+      const title = document.getElementById('book-title')?.textContent || 'EDEN';
+      const text = document.getElementById('book-summary')?.textContent?.slice(0,120) + '...' || '';
+      if (navigator.share) {
+        navigator.share({ title, text, url }).catch(() => {});
+      } else {
+        // Fallback for desktop
+        document.getElementById('share-url').textContent = url;
+        document.getElementById('share-modal').classList.add('open');
+      }
+    }
+
+    function copyLink() {
+      navigator.clipboard.writeText(window.location.href).then(() => {
+        const btn = document.getElementById('copy-btn');
+        btn.textContent = t.copied;
+        setTimeout(() => { btn.textContent = t.copy; }, 2000);
+      });
+    }
+
+    document.getElementById('share-modal').addEventListener('click', e => {
+      if (e.target === document.getElementById('share-modal')) e.target.classList.remove('open');
+    });
+
+    window.startReading = startReading;
+    window.toggleLibrary = toggleLibrary;
+    window.openShare = openShare;
+    window.copyLink = copyLink;
+  </script>
+</body>
+</html>
