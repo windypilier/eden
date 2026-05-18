@@ -83,7 +83,10 @@
     .toggle.on { background:var(--gold); }
     .toggle::after { content:''; position:absolute; width:16px; height:16px; background:#fff; border-radius:50%; top:3px; left:3px; transition:transform 0.2s; }
     .toggle.on::after { transform:translateX(18px); }
-    .lang-options { display:none; padding:0.8rem 1.5rem; gap:8px; flex-wrap:wrap; background:rgba(14,8,40,0.4); }
+    .avatar-wrap { position:relative; flex-shrink:0; }
+    .avatar-edit { position:absolute; bottom:0; right:0; width:22px; height:22px; border-radius:50%; background:var(--gold); display:flex; align-items:center; justify-content:center; cursor:pointer; border:2px solid #160D42; }
+    .avatar-edit svg { width:10px; height:10px; stroke:#160D42; fill:none; stroke-width:2.5; }
+    .avatar-edit input { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; border-radius:50%; }
     .lang-options.open { display:flex; }
     .lang-opt { padding:7px 18px; border-radius:20px; font-size:11px; letter-spacing:2px; cursor:pointer; border:0.5px solid var(--border-purple); background:transparent; color:rgba(160,140,200,0.8); font-family:'Inter',sans-serif; text-transform:uppercase; transition:all 0.2s; }
     .lang-opt.on { border-color:var(--gold); color:var(--gold); }
@@ -137,7 +140,13 @@
     <div class="page-title">Mon Profil</div>
 
     <div class="profile-card">
-      <div class="avatar" id="avatar"><span class="avatar-placeholder" id="avatar-initial">?</span></div>
+      <div class="avatar-wrap">
+        <div class="avatar" id="avatar"><span class="avatar-placeholder" id="avatar-initial">?</span></div>
+        <div class="avatar-edit" title="Changer la photo">
+          <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          <input type="file" accept="image/*" onchange="uploadProfilePhoto(this)"/>
+        </div>
+      </div>
       <div class="profile-info">
         <div class="profile-name" id="profile-name">—</div>
         <div class="profile-email" id="profile-email">—</div>
@@ -232,6 +241,7 @@
         </div>
         <div class="setting-right"><div class="arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div></div>
       </div>
+      <div class="setting-item" id="admin-link" style="display:none;" onclick="window.location.href='admin.html'">
         <div class="setting-left">
           <div class="setting-icon gold">
             <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
@@ -311,6 +321,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, deleteUser } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import { getFirestore, doc, getDoc, setDoc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAHhYlri1s8EldAGRa7IaVr1vI_1R2Q0Lo",
@@ -324,9 +335,23 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+    const storage = getStorage(app);
     const provider = new GoogleAuthProvider();
     const covers = ['hc1','hc2','hc3'];
     const bookSvg = `<svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`;
+
+    window.uploadProfilePhoto = async (input) => {
+      const file = input.files[0];
+      if (!file || !auth.currentUser) return;
+      try {
+        const storageRef = ref(storage, `avatars/${auth.currentUser.uid}`);
+        await uploadBytes(storageRef, file);
+        const url = await getDownloadURL(storageRef);
+        await updateDoc(doc(db, 'users', auth.currentUser.uid), { photo: url });
+        const avatarEl = document.getElementById('avatar');
+        avatarEl.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;" alt="Photo"/>`;
+      } catch(e) { console.error(e); }
+    };
 
     onAuthStateChanged(auth, async (user) => {
       document.getElementById('loading').style.display = 'none';
@@ -338,13 +363,7 @@
 
         // Show admin link only for admin
         if (user.email === 'windy.pilierreyes@gmail.com') {
-          const adminEl = document.getElementById('admin-link');
-          adminEl.removeAttribute('style');
-          adminEl.style.display = 'flex';
-          adminEl.style.alignItems = 'center';
-          adminEl.style.justifyContent = 'space-between';
-          adminEl.style.padding = '1rem 1.5rem';
-          adminEl.style.cursor = 'pointer';
+          document.getElementById('admin-link').style.display = 'flex';
         }
 
         // Load username
@@ -606,6 +625,7 @@
     window.toggleLang=toggleLang; window.setLang=setLang; window.toggleEl=toggleEl;
     window.toggleNotifSection=toggleNotifSection; window.togglePref=togglePref;
     window.doSignOut=doSignOut; window.doDeleteAccount=doDeleteAccount; window.signInWithGoogle=signInWithGoogle;
+    window.uploadProfilePhoto = window.uploadProfilePhoto || function(){};
   </script>
 </body>
 </html>
