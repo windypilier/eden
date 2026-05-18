@@ -87,7 +87,6 @@
     .avatar-edit { position:absolute; bottom:0; right:0; width:22px; height:22px; border-radius:50%; background:var(--gold); display:flex; align-items:center; justify-content:center; cursor:pointer; border:2px solid #160D42; }
     .avatar-edit svg { width:10px; height:10px; stroke:#160D42; fill:none; stroke-width:2.5; }
     .avatar-edit input { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; border-radius:50%; }
-    .lang-options.open { display:flex; }
     .lang-opt { padding:7px 18px; border-radius:20px; font-size:11px; letter-spacing:2px; cursor:pointer; border:0.5px solid var(--border-purple); background:transparent; color:rgba(160,140,200,0.8); font-family:'Inter',sans-serif; text-transform:uppercase; transition:all 0.2s; }
     .lang-opt.on { border-color:var(--gold); color:var(--gold); }
     .setting-item.danger .setting-label { color:#E05A5A; }
@@ -357,15 +356,16 @@
       if (user) {
         document.getElementById('main').style.display = 'block';
         document.getElementById('not-signed-in').style.display = 'none';
-        document.getElementById('profile-username').textContent = snap.exists() && snap.data().username ? snap.data().username : (user.displayName || 'Utilisateur');
+
+        // Set email immediately
         document.getElementById('profile-email').textContent = user.email || '';
 
-        // Load username in settings
-        const usernameEl = document.getElementById('current-username');
-        if (snap.exists() && snap.data().username) {
-          usernameEl.textContent = snap.data().username;
+        // Set avatar
+        const avatarEl = document.getElementById('avatar');
+        if (user.photoURL) {
+          avatarEl.innerHTML = `<img src="${user.photoURL}" style="width:100%;height:100%;object-fit:cover;" alt="${user.displayName}"/>`;
         } else {
-          usernameEl.textContent = 'Pas encore défini';
+          document.getElementById('avatar-initial').textContent = user.displayName ? user.displayName[0].toUpperCase() : 'U';
         }
 
         // Show admin link only for admin
@@ -373,57 +373,69 @@
           document.getElementById('admin-link').style.display = 'flex';
         }
 
+        // Load Firestore data
+        try {
+          const userRef = doc(db, "users", user.uid);
+          const snap = await getDoc(userRef);
+          const data = snap.exists() ? snap.data() : {};
+
+          // Show username or displayName at top
+          const username = data.username || user.displayName || 'Utilisateur';
+          document.getElementById('profile-username').textContent = username;
+          document.getElementById('current-username').textContent = data.username || 'Pas encore défini';
+
+          // Custom photo from Storage
+          if (data.photo && data.photo !== user.photoURL) {
+            avatarEl.innerHTML = `<img src="${data.photo}" style="width:100%;height:100%;object-fit:cover;" alt="Photo"/>`;
+          }
+
+          // Stats
+          const lib = data.library || [];
+          document.getElementById('stat-books').textContent = lib.length;
+          document.getElementById('stat-chapters').textContent = lib.reduce((a,b) => a + (b.chaptersRead||0), 0);
+          document.getElementById('stat-finished').textContent = lib.filter(b => b.progress >= 100).length;
+
+          // History
+          const list = document.getElementById('history-list');
+          if (lib.length > 0) {
+            list.innerHTML = [...lib].reverse().map((item,i) => `
+              <div class="history-item">
+                <div class="history-cover ${['hc1','hc2','hc3'][i%3]}"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
+                <div class="history-info"><div class="history-title">${item.title||'—'}</div><div class="history-meta">${item.chapter||'—'}</div></div>
+                <div class="history-progress"><span class="prog-pct">${item.progress||0}%</span><div class="prog-bar-sm"><div class="prog-fill-sm" style="width:${item.progress||0}%"></div></div></div>
+              </div>`).join('');
+          }
+
+          // Lang
+          if (data.lang) {
+            const labels = {fr:'Français',es:'Español',en:'English'};
+            document.getElementById('current-lang-label').textContent = labels[data.lang]||'Français';
+            document.querySelectorAll('.lang-opt').forEach(b => {
+              b.classList.toggle('on', b.textContent.toLowerCase() === data.lang || (data.lang==='en' && b.textContent==='EN') || (data.lang==='fr' && b.textContent==='FR') || (data.lang==='es' && b.textContent==='ES'));
+            });
+          }
+
+          // Notif prefs
+          if (data.notifPrefs && window._loadPrefs) window._loadPrefs(data.notifPrefs);
+          window._userPrefs = data.notifPrefs || {};
+
+        } catch(e) { console.error(e); }
+
+        // Update username function
         window._updateUsername = async (username) => {
           await updateDoc(doc(db, 'users', user.uid), { username });
           document.getElementById('current-username').textContent = username;
           document.getElementById('profile-username').textContent = username;
           document.getElementById('username-edit-modal').classList.remove('open');
         };
-        const avatarEl = document.getElementById('avatar');
-        if (user.photoURL) {
-          avatarEl.innerHTML = `<img src="${user.photoURL}" alt="${user.displayName}"/>`;
-        } else {
-          document.getElementById('avatar-initial').textContent = user.displayName ? user.displayName[0].toUpperCase() : 'U';
-        }
-        try {
-          const userRef = doc(db, "users", user.uid);
-          const snap = await getDoc(userRef);
-          if (snap.exists()) {
-            const data = snap.data();
-            const lib = data.library || [];
-            document.getElementById('stat-books').textContent = lib.length;
-            document.getElementById('stat-chapters').textContent = lib.reduce((a,b) => a + (b.chaptersRead||0), 0);
-            document.getElementById('stat-finished').textContent = lib.filter(b => b.progress >= 100).length;
-            const list = document.getElementById('history-list');
-            if (lib.length > 0) {
-              list.innerHTML = [...lib].reverse().map((item,i) => `
+
+      } else {
                 <div class="history-item">
                   <div class="history-cover ${covers[i%3]}">${bookSvg}</div>
                   <div class="history-info">
                     <div class="history-title">${item.title||'—'}</div>
                     <div class="history-meta">${item.chapter||''} · ${item.lastRead||''}</div>
                   </div>
-                  <div class="history-progress">
-                    <span class="prog-pct">${item.progress||0}%</span>
-                    <div class="prog-bar-sm"><div class="prog-fill-sm" style="width:${item.progress||0}%"></div></div>
-                  </div>
-                </div>`).join('');
-            }
-            if (data.lang) {
-              const labels = {fr:'Français',es:'Español',en:'English'};
-              document.getElementById('current-lang-label').textContent = labels[data.lang]||'Français';
-              document.querySelectorAll('.lang-opt').forEach(b => b.classList.remove('on'));
-              document.querySelectorAll('.lang-opt').forEach(b => { if(b.textContent.toLowerCase()===data.lang) b.classList.add('on'); });
-            }
-            // Load notification prefs
-            if (data.notifPrefs) {
-              window._userPrefs = data.notifPrefs;
-              if (window._loadPrefs) window._loadPrefs(data.notifPrefs);
-            }
-          } else {
-            await setDoc(userRef, { name:user.displayName, email:user.email, photo:user.photoURL, lang:'fr', library:[], createdAt:new Date() });
-          }
-        } catch(e) { console.error(e); }
       } else {
         document.getElementById('not-signed-in').style.display = 'flex';
         document.getElementById('main').style.display = 'none';
@@ -563,7 +575,10 @@
     });
     }); // end DOMContentLoaded
 
-    function toggleLang() { document.getElementById('lang-options').classList.toggle('open'); }
+    function toggleLang() {
+      const opts = document.getElementById('lang-options');
+      opts.style.display = opts.style.display === 'flex' ? 'none' : 'flex';
+    }
     function setLang(btn,lang,label) {
       document.querySelectorAll('.lang-opt').forEach(b=>b.classList.remove('on'));
       btn.classList.add('on');
@@ -612,10 +627,14 @@
       document.getElementById('username-edit-modal').classList.add('open');
     }
     function saveNewUsername() {
-      var val = document.getElementById('new-username-input').value.trim();
+      var val = (document.getElementById('new-username-input').value || '').trim();
       if (val.length < 3) { alert('Minimum 3 caractères.'); return; }
       if (val.includes(' ')) { alert('Pas d\'espace dans le pseudo.'); return; }
-      if (window._updateUsername) window._updateUsername(val);
+      if (typeof window._updateUsername === 'function') {
+        window._updateUsername(val);
+      } else {
+        alert('Connexion Firebase non prête, réessaie dans un instant.');
+      }
     }
     window.openUsernameEdit = openUsernameEdit;
     window.saveNewUsername = saveNewUsername;
