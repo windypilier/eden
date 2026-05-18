@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EDEN — À propos</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    :root { --gold:#C9A84C; --gold-light:#F0D080; --bg-deep:#0E0828; --border-purple:#2A1A6A; }
+    html, body { min-height:100%; background:radial-gradient(ellipse at top,#2A1B6A 0%,#160D42 55%,#0E0828 100%); color:#fff; font-family:'Inter',sans-serif; font-weight:300; padding-bottom:60px; }
+
+    nav { position:sticky; top:0; z-index:100; background:rgba(14,8,40,0.92); backdrop-filter:blur(12px); border-bottom:0.5px solid var(--border-purple); padding:0 1.5rem; height:54px; display:flex; align-items:center; gap:14px; }
+    .nav-back { width:32px; height:32px; border-radius:50%; background:var(--bg-deep); border:0.5px solid var(--border-purple); display:flex; align-items:center; justify-content:center; cursor:pointer; text-decoration:none; transition:border-color 0.2s; }
+    .nav-back:hover { border-color:var(--gold); }
+    .nav-back svg { width:14px; height:14px; stroke:rgba(160,140,200,0.7); fill:none; stroke-width:2; }
+    .nav-logo { font-family:'Cinzel',serif; font-size:18px; letter-spacing:5px; color:var(--gold); text-decoration:none; }
+
+    /* HERO */
+    .about-hero { background:radial-gradient(ellipse at center,#2E1E72 0%,#1B1147 55%,#130C3A 100%); padding:4rem 1.5rem 3rem; text-align:center; position:relative; overflow:hidden; }
+    .hero-blob { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:400px; height:200px; background:#3A2480; border-radius:50%; opacity:0.35; pointer-events:none; filter:blur(50px); }
+    .hero-content { position:relative; z-index:2; }
+    .page-tag { font-size:9px; color:rgba(201,168,76,0.6); letter-spacing:4px; text-transform:uppercase; margin-bottom:1rem; }
+    .page-title { font-family:'Cinzel',serif; font-size:clamp(28px,5vw,42px); color:var(--gold); letter-spacing:4px; margin-bottom:1rem; }
+    .page-sub { font-size:13px; color:rgba(255,255,255,0.5); line-height:1.8; max-width:480px; margin:0 auto; font-style:italic; }
+    .gold-line { width:48px; height:0.5px; background:linear-gradient(90deg,transparent,var(--gold),transparent); margin:1.5rem auto; }
+
+    /* CONTENT */
+    .container { max-width:680px; margin:0 auto; padding:3rem 1.5rem; }
+    .section { margin-bottom:3rem; }
+    h2 { font-family:'Cinzel',serif; font-size:16px; color:#fff; letter-spacing:1px; margin-bottom:1.2rem; }
+    p { font-size:13px; color:rgba(255,255,255,0.65); line-height:1.9; margin-bottom:1rem; }
+    .verse-card { background:rgba(201,168,76,0.06); border:0.5px solid rgba(201,168,76,0.2); border-radius:12px; padding:1.5rem; text-align:center; margin:2rem 0; }
+    .verse-text { font-family:'Cinzel',serif; font-size:13px; color:rgba(255,255,255,0.7); line-height:1.9; font-style:italic; margin-bottom:0.5rem; }
+    .verse-ref { font-size:10px; color:rgba(201,168,76,0.6); letter-spacing:3px; text-transform:uppercase; }
+
+    /* VALUES */
+    .values-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:14px; margin-top:1.5rem; }
+    .value-card { background:rgba(14,8,40,0.6); border:0.5px solid var(--border-purple); border-radius:12px; padding:1.2rem; }
+    .value-icon { font-size:24px; margin-bottom:0.8rem; }
+    .value-title { font-family:'Cinzel',serif; font-size:12px; color:var(--gold); letter-spacing:1px; margin-bottom:0.5rem; }
+    .value-text { font-size:11px; color:rgba(255,255,255,0.5); line-height:1.7; }
+
+    /* LANGUAGES */
+    .lang-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:1.5rem; }
+    .lang-card { background:rgba(14,8,40,0.6); border:0.5px solid var(--border-purple); border-radius:10px; padding:1rem; text-align:center; }
+    .lang-flag { font-size:28px; margin-bottom:0.5rem; }
+    .lang-name { font-family:'Cinzel',serif; font-size:11px; color:var(--gold); letter-spacing:1px; }
+
+    /* CTA */
+    .cta-section { background:radial-gradient(ellipse at center,#2E1E72 0%,#1B1147 100%); border-radius:16px; padding:2.5rem; text-align:center; margin-top:2rem; }
+    .cta-title { font-family:'Cinzel',serif; font-size:20px; color:var(--gold); letter-spacing:2px; margin-bottom:0.8rem; }
+    .cta-text { font-size:12px; color:rgba(255,255,255,0.5); line-height:1.8; margin-bottom:1.5rem; }
+    .btn-cta { display:inline-block; padding:13px 32px; border-radius:6px; background:linear-gradient(135deg,var(--gold),var(--gold-light)); color:#160D42; font-size:10px; font-family:'Inter',sans-serif; letter-spacing:3px; cursor:pointer; text-transform:uppercase; font-weight:500; text-decoration:none; border:none; }
+
+    /* FOOTER LINKS */
+    .footer-links { text-align:center; padding:2rem 1.5rem; border-top:0.5px solid var(--border-purple); margin-top:2rem; }
+    .footer-links a { font-size:11px; color:rgba(255,255,255,0.3); text-decoration:none; margin:0 1rem; letter-spacing:1px; transition:color 0.2s; }
+    .footer-links a:hover { color:var(--gold); }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a class="nav-back" href="index.html"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></a>
+    <a class="nav-logo" href="index.html">EDEN</a>
+  </nav>
+
+  <div class="about-hero">
+    <div class="hero-blob"></div>
+    <div class="hero-content">
+      <div class="page-tag">À propos</div>
+      <h1 class="page-title">EDEN</h1>
+      <div class="gold-line"></div>
+      <p class="page-sub">Only Christian stories in this garden</p>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <div class="verse-card">
+      <p class="verse-text">"La lampe du corps, c'est l'œil. Si ton œil est sain, tout ton corps sera éclairé."</p>
+      <p class="verse-ref">Matthieu 6:22</p>
+    </div>
+
+    <div class="section">
+      <h2>Notre mission</h2>
+      <p>EDEN est une bibliothèque numérique chrétienne qui rassemble des histoires de foi, d'espoir et de grâce. Notre mission est simple : offrir un espace de lecture édifiant, où chaque histoire nourrit l'esprit et renforce la foi.</p>
+      <p>Dans un monde saturé de contenus, EDEN propose un jardin littéraire chrétien — un endroit où les mots ont du sens, où les récits pointent vers quelque chose de plus grand.</p>
+    </div>
+
+    <div class="section">
+      <h2>Nos valeurs</h2>
+      <div class="values-grid">
+        <div class="value-card">
+          <div class="value-icon">✦</div>
+          <div class="value-title">Foi</div>
+          <div class="value-text">Chaque histoire publiée sur EDEN est ancrée dans des valeurs chrétiennes authentiques.</div>
+        </div>
+        <div class="value-card">
+          <div class="value-icon">🌿</div>
+          <div class="value-title">Diversité</div>
+          <div class="value-text">Des histoires en français, espagnol et anglais pour toucher une communauté mondiale.</div>
+        </div>
+        <div class="value-card">
+          <div class="value-icon">🤍</div>
+          <div class="value-title">Communauté</div>
+          <div class="value-text">Un espace bienveillant où lecteurs et auteurs peuvent se connecter et partager.</div>
+        </div>
+        <div class="value-card">
+          <div class="value-icon">📖</div>
+          <div class="value-title">Accessibilité</div>
+          <div class="value-text">EDEN est gratuit et accessible à tous, partout dans le monde.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Trois langues, une foi</h2>
+      <p>EDEN est disponible en trois langues pour rejoindre la communauté chrétienne francophone, hispanophone et anglophone.</p>
+      <div class="lang-cards">
+        <div class="lang-card"><div class="lang-flag">🇫🇷</div><div class="lang-name">Français</div></div>
+        <div class="lang-card"><div class="lang-flag">🇪🇸</div><div class="lang-name">Español</div></div>
+        <div class="lang-card"><div class="lang-flag">🇬🇧</div><div class="lang-name">English</div></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Notre histoire</h2>
+      <p>EDEN est né d'un désir simple : créer un espace numérique où les histoires chrétiennes peuvent être partagées, lues et appréciées. Fondé à Saint-Martin, ce projet porte l'ambition de bâtir une bibliothèque chrétienne multilingue accessible à tous.</p>
+      <p>Le nom EDEN n'est pas un hasard — comme le jardin d'origine, ce site aspire à être un lieu de beauté, de paix et de rencontre avec Dieu à travers les mots.</p>
+    </div>
+
+    <div class="cta-section">
+      <div class="cta-title">Commencer à lire</div>
+      <p class="cta-text">Explore notre bibliothèque d'histoires chrétiennes et laisse-toi porter par ces récits de foi.</p>
+      <a href="index.html" class="btn-cta">Explorer EDEN</a>
+    </div>
+
+  </div>
+
+  <div class="footer-links">
+    <a href="index.html">Accueil</a>
+    <a href="privacy.html">Politique de confidentialité</a>
+    <a href="feedback.html">Contact</a>
+  </div>
+
+</body>
+</html>
