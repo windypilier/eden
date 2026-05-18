@@ -222,7 +222,7 @@
       <div class="hero-blob"></div>
       <div class="hero-content">
         <h1 class="hero-title">EDEN</h1>
-        <p id="hero-tagline" style="font-family:'Cinzel',serif;font-size:clamp(11px,2vw,14px);color:rgba(201,168,76,0.7);letter-spacing:3px;font-style:italic;margin-bottom:1.8rem;">All types of Christian stories in this garden</p>
+        <p id="hero-tagline" style="font-family:'Cinzel',serif;font-size:clamp(11px,2vw,14px);color:rgba(201,168,76,0.7);letter-spacing:3px;font-style:italic;margin-bottom:1.8rem;">Only Christian stories in this garden</p>
         <div class="hero-btns">
           <button class="btn-outline" id="btn-read" onclick="document.querySelector('.books-section').scrollIntoView({behavior:'smooth'})">Commencer à lire</button>
           <button class="btn-outline" id="btn-library" onclick="goToLibrary()">Ma bibliothèque</button>
@@ -307,19 +307,32 @@
     </div>
   </div>
 
-  <!-- LANG CHOOSER inline — must load before Firebase so buttons work immediately -->
+  <!-- LANG CHOOSER inline — loads before Firebase -->
   <script>
     function chooseLang(lang) {
       localStorage.setItem('eden-lang', lang);
+      // Hide screen and show site
       const screen = document.getElementById('lang-screen');
       const site = document.getElementById('site');
-      if (screen) screen.classList.add('hidden');
+      if (screen) { screen.style.opacity = '0'; screen.style.visibility = 'hidden'; }
       if (site) site.style.display = 'block';
-      setTimeout(() => { if (screen) screen.style.display = 'none'; }, 650);
+      setTimeout(() => { if (screen) screen.style.display = 'none'; }, 600);
       window._pendingLang = lang;
       if (window.applyTranslations) window.applyTranslations(lang);
     }
     window.chooseLang = chooseLang;
+
+    // If lang already saved, skip screen immediately
+    window.addEventListener('DOMContentLoaded', () => {
+      const saved = localStorage.getItem('eden-lang');
+      if (saved) {
+        const screen = document.getElementById('lang-screen');
+        const site = document.getElementById('site');
+        if (screen) screen.style.display = 'none';
+        if (site) site.style.display = 'block';
+        window._pendingLang = saved;
+      }
+    });
   </script>
 
   <!-- Firebase SDK -->
@@ -508,7 +521,7 @@
         notif_title:'Notificaciones', notif_settings:'Ajustes →', notif_empty:'No hay notificaciones por ahora.',
         notif_admin_reply:'EDEN respondió', notif_new_chapter:'Nuevo capítulo disponible',
         no_results:'No hay libros en este género por ahora.',
-        tagline:'Todo tipo de historias cristianas en este jardín',
+        tagline:'Solo historias cristianas en este jardín',
         verse_ref:'Mateo 6:22',
         genres:['Todos','Ficción','No ficción','Testimonio','Romance','Aventura','Thriller','Misterio','Histórico','Fantasía','Drama','Poesía','Juvenil','Biografía','Cuento'],
       en: {
@@ -522,7 +535,7 @@
         notif_title:'Notifications', notif_settings:'Settings →', notif_empty:'No notifications yet.',
         notif_admin_reply:'EDEN replied', notif_new_chapter:'New chapter available',
         no_results:'No books in this genre yet.',
-        tagline:'All types of Christian stories in this garden',
+        tagline:'Only Christian stories in this garden',
         verse:'"The eye is the lamp of the body. If your eyes are healthy, your whole body will be full of light "',
         verse_ref:'Matthew 6:22',
         genres:['All','Fiction','Non-fiction','Testimony','Romance','Adventure','Thriller','Mystery','Historical','Fantasy','Drama','Poetry','Youth','Biography','Short story'],
@@ -675,9 +688,8 @@
     function switchLang(lang) {
       localStorage.setItem('eden-lang', lang);
       closeLangPopup();
-      _currentLang = lang;
-      window._currentLang = lang;
-      applyTranslations(lang);
+      location.reload();
+    }
     }
 
     // NOTIFICATION PANEL
