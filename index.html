@@ -222,6 +222,7 @@
       <div class="hero-blob"></div>
       <div class="hero-content">
         <h1 class="hero-title">EDEN</h1>
+        <p id="hero-tagline" style="font-family:'Cinzel',serif;font-size:clamp(11px,2vw,14px);color:rgba(201,168,76,0.7);letter-spacing:3px;font-style:italic;margin-bottom:1.8rem;">Nourris ton esprit avec du contenu sacré</p>
         <div class="hero-btns">
           <button class="btn-outline" id="btn-read" onclick="document.querySelector('.books-section').scrollIntoView({behavior:'smooth'})">Commencer à lire</button>
           <button class="btn-outline" id="btn-library" onclick="goToLibrary()">Ma bibliothèque</button>
@@ -237,9 +238,16 @@
         <button class="genre-btn" onclick="filterGenre(this,'nonfiction')" id="g-nonfiction">Non-fiction</button>
         <button class="genre-btn" onclick="filterGenre(this,'temoignage')" id="g-temoignage">Témoignage</button>
         <button class="genre-btn" onclick="filterGenre(this,'romance')" id="g-romance">Romance</button>
-        <button class="genre-btn" onclick="filterGenre(this,'policier')" id="g-policier">Policier</button>
+        <button class="genre-btn" onclick="filterGenre(this,'aventure')" id="g-aventure">Aventure</button>
+        <button class="genre-btn" onclick="filterGenre(this,'thriller')" id="g-thriller">Thriller</button>
+        <button class="genre-btn" onclick="filterGenre(this,'mystere')" id="g-mystere">Mystère</button>
+        <button class="genre-btn" onclick="filterGenre(this,'historique')" id="g-historique">Historique</button>
+        <button class="genre-btn" onclick="filterGenre(this,'fantastique')" id="g-fantastique">Fantastique</button>
+        <button class="genre-btn" onclick="filterGenre(this,'drame')" id="g-drame">Drame</button>
         <button class="genre-btn" onclick="filterGenre(this,'poesie')" id="g-poesie">Poésie</button>
         <button class="genre-btn" onclick="filterGenre(this,'jeunesse')" id="g-jeunesse">Jeunesse</button>
+        <button class="genre-btn" onclick="filterGenre(this,'biographie')" id="g-biographie">Biographie</button>
+        <button class="genre-btn" onclick="filterGenre(this,'nouvelle')" id="g-nouvelle">Nouvelle</button>
       </div>
     </section>
 
@@ -274,6 +282,13 @@
     <a href="feedback.html" id="chat-fab" style="position:fixed;bottom:90px;right:1.5rem;width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#C9A84C,#F0D080);display:flex;align-items:center;justify-content:center;z-index:60;box-shadow:0 4px 20px rgba(201,168,76,0.35);transition:transform 0.2s;text-decoration:none;" onmouseover="this.style.transform='scale(1.08)'" onmouseout="this.style.transform='scale(1)'">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#160D42" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
     </a>
+
+    <div style="background:rgba(8,4,24,0.6);border-top:0.5px solid rgba(42,26,106,0.4);padding:2rem 1.5rem;text-align:center;">
+      <div style="width:30px;height:0.5px;background:linear-gradient(90deg,transparent,#C9A84C,transparent);margin:0 auto 1.2rem;"></div>
+      <p id="verse-text" style="font-family:'Cinzel',serif;font-size:13px;color:rgba(255,255,255,0.6);line-height:1.9;max-width:520px;margin:0 auto 0.6rem;font-style:italic;">"Car Dieu a tant aimé le monde qu'il a donné son Fils unique, afin que quiconque croit en lui ne périsse pas, mais qu'il ait la vie éternelle."</p>
+      <p id="verse-ref" style="font-size:10px;color:rgba(201,168,76,0.6);letter-spacing:3px;text-transform:uppercase;">Jean 3:16</p>
+      <div style="width:30px;height:0.5px;background:linear-gradient(90deg,transparent,#C9A84C,transparent);margin:1.2rem auto 0;"></div>
+    </div>
 
     <footer><span id="footer-text">© 2026 EDEN · Tous droits réservés</span></footer>
   </div>
@@ -463,8 +478,11 @@
         modal_title:'Rejoindre EDEN', modal_sub:'Connecte-toi pour sauvegarder ta progression et accéder à ta bibliothèque sur tous tes appareils.',
         notif_title:'Notifications', notif_settings:'Paramètres →', notif_empty:'Aucune notification pour l\'instant.',
         notif_admin_reply:'EDEN a répondu', notif_new_chapter:'Nouveau chapitre disponible',
-        no_results:'Aucun livre dans ce genre pour l\'instant.'
-      },
+        no_results:'Aucun livre dans ce genre pour l\'instant.',
+        tagline:'Nourris ton esprit avec du contenu sacré',
+        verse:'"Car Dieu a tant aimé le monde qu\'il a donné son Fils unique, afin que quiconque croit en lui ne périsse pas, mais qu\'il ait la vie éternelle."',
+        verse_ref:'Jean 3:16',
+        genres:['Tous','Fiction','Non-fiction','Témoignage','Romance','Aventure','Thriller','Mystère','Historique','Fantastique','Drame','Poésie','Jeunesse','Biographie','Nouvelle'],
       es: {
         search_placeholder:'Buscar una historia...',
         filter_all:'Todos', btn_read:'Empezar a leer', btn_library:'Mi biblioteca',
@@ -475,8 +493,11 @@
         modal_title:'Únete a EDEN', modal_sub:'Inicia sesión para guardar tu progreso y acceder a tu biblioteca en todos tus dispositivos.',
         notif_title:'Notificaciones', notif_settings:'Ajustes →', notif_empty:'No hay notificaciones por ahora.',
         notif_admin_reply:'EDEN respondió', notif_new_chapter:'Nuevo capítulo disponible',
-        no_results:'No hay libros en este género por ahora.'
-      },
+        no_results:'No hay libros en este género por ahora.',
+        tagline:'Alimenta tu espíritu con contenido sagrado',
+        verse:'"Porque de tal manera amó Dios al mundo, que ha dado a su Hijo unigénito, para que todo aquel que en él cree, no se pierda, mas tenga vida eterna."',
+        verse_ref:'Juan 3:16',
+        genres:['Todos','Ficción','No ficción','Testimonio','Romance','Aventura','Thriller','Misterio','Histórico','Fantasía','Drama','Poesía','Juvenil','Biografía','Cuento'],
       en: {
         search_placeholder:'Search a story...',
         filter_all:'All', btn_read:'Start reading', btn_library:'My library',
@@ -487,8 +508,11 @@
         modal_title:'Join EDEN', modal_sub:'Sign in to save your progress and access your library on all your devices.',
         notif_title:'Notifications', notif_settings:'Settings →', notif_empty:'No notifications yet.',
         notif_admin_reply:'EDEN replied', notif_new_chapter:'New chapter available',
-        no_results:'No books in this genre yet.'
-      }
+        no_results:'No books in this genre yet.',
+        tagline:'Feed your spirit with holy content',
+        verse:'"For God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life."',
+        verse_ref:'John 3:16',
+        genres:['All','Fiction','Non-fiction','Testimony','Romance','Adventure','Thriller','Mystery','Historical','Fantasy','Drama','Poetry','Youth','Biography','Short story'],
     };
 
     let _currentLang = 'fr';
@@ -512,6 +536,9 @@
       document.getElementById('notif-panel-title').textContent = t.notif_title;
       document.getElementById('notif-settings-link').textContent = t.notif_settings;
       document.getElementById('notif-empty').textContent = t.notif_empty;
+      document.getElementById('hero-tagline').textContent = t.tagline;
+      document.getElementById('verse-text').textContent = t.verse;
+      document.getElementById('verse-ref').textContent = t.verse_ref;
       const genreBtns = document.querySelectorAll('.genre-btn');
       genreBtns.forEach((btn,i) => { if(t.genres[i]) btn.textContent = t.genres[i]; });
     }
