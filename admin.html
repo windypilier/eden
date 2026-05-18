@@ -304,6 +304,17 @@
       <div class="form-row full">
         <div class="field"><label>Résumé</label><textarea id="edit-summary" style="min-height:100px;"></textarea></div>
       </div>
+      <div class="field" style="margin-bottom:1rem;">
+        <label>Changer la couverture</label>
+        <div class="cover-upload" style="margin-top:6px;">
+          <input type="file" id="edit-cover-file" accept="image/*" onchange="previewEditCover(this)"/>
+          <img class="cover-preview" id="edit-cover-preview" style="display:none;"/>
+          <div id="edit-cover-placeholder" class="cover-upload-icon">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <div class="cover-upload-text">Clique pour changer la couverture</div>
+          </div>
+        </div>
+      </div>
       <input type="hidden" id="edit-book-id"/>
       <div class="form-actions">
         <button class="btn-submit" onclick="saveEdit()">Enregistrer</button>
@@ -319,6 +330,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import { getFirestore, collection, doc, getDocs, addDoc, deleteDoc, updateDoc, getCountFromServer, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAHhYlri1s8EldAGRa7IaVr1vI_1R2Q0Lo",
@@ -332,6 +344,15 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    // Upload cover to Firebase Storage
+    window._uploadCover = async (file, bookId) => {
+      const storageRef = ref(storage, `covers/${bookId}_${Date.now()}`);
+      await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(storageRef);
+      return url;
+    };
 
     // ADMIN EMAIL — change this to your email
     const ADMIN_EMAIL = 'windy.pilierreyes@gmail.com';
@@ -548,20 +569,37 @@
       reader.readAsDataURL(file);
     }
 
-    function addBook() {
+    async function addBook() {
       const title = document.getElementById('book-title').value.trim();
       const author = document.getElementById('book-author').value.trim();
       const lang = document.getElementById('book-lang').value;
       const genre = document.getElementById('book-genre').value;
       const status = document.getElementById('book-status').value;
       const summary = document.getElementById('book-summary').value.trim();
+      const coverFile = document.getElementById('book-cover-file').files[0];
 
       if (!title) { showToast('Le titre est obligatoire.'); return; }
       if (!summary) { showToast('Le résumé est obligatoire.'); return; }
 
       const id = title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
-      if (window._addBook) window._addBook({ id, title, author, lang, genre, status, summary });
-      clearBookForm();
+
+      // Show loading
+      const btn = document.querySelector('.btn-submit');
+      btn.textContent = 'Publication...';
+      btn.disabled = true;
+
+      try {
+        let coverUrl = null;
+        if (coverFile && window._uploadCover) {
+          showToast('Upload de la couverture...');
+          coverUrl = await window._uploadCover(coverFile, id);
+        }
+        if (window._addBook) await window._addBook({ id, title, author, lang, genre, status, summary, coverUrl });
+        clearBookForm();
+      } finally {
+        btn.textContent = 'Publier le livre';
+        btn.disabled = false;
+      }
     }
 
     function clearBookForm() {
@@ -621,7 +659,7 @@
       document.getElementById('edit-modal').style.display = 'none';
     }
 
-    function saveEdit() {
+    async function saveEdit() {
       const bookId = document.getElementById('edit-book-id').value;
       const data = {
         title: document.getElementById('edit-title').value.trim(),
@@ -632,8 +670,28 @@
         summary: document.getElementById('edit-summary').value.trim()
       };
       if (!data.title) { showToast('Le titre est obligatoire.'); return; }
+
+      const coverFile = document.getElementById('edit-cover-file').files[0];
+      if (coverFile && window._uploadCover) {
+        showToast('Upload de la couverture...');
+        data.coverUrl = await window._uploadCover(coverFile, bookId);
+      }
+
       if (window._updateBook) window._updateBook(bookId, data);
       closeEdit();
+    }
+
+    function previewEditCover(input) {
+      const file = input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = document.getElementById('edit-cover-preview');
+        img.src = e.target.result;
+        img.style.display = 'block';
+        document.getElementById('edit-cover-placeholder').style.display = 'none';
+      };
+      reader.readAsDataURL(file);
     }
 
     function toggleStatus(bookId) {
@@ -654,6 +712,7 @@
     window.clearChapterForm = clearChapterForm;
     window.deleteBook = deleteBook;
     window.previewCover = previewCover;
+    window.previewEditCover = previewEditCover;
   </script>
 </body>
 </html>

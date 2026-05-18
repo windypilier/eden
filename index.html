@@ -332,9 +332,12 @@
       }
       grid.innerHTML = books.map((book, i) => `
         <a class="book-card" href="livre.html?book=${book.id}" data-lang="${book.lang||'fr'}" data-genre="${book.genre||'fiction'}" style="text-decoration:none;">
-          <div class="book-cover ${covers[i % covers.length]}">
-            <span class="lang-badge">${(book.lang||'fr').toUpperCase()}</span>
-            <div class="book-cover-placeholder">${bookSvg}</div>
+          <div class="book-cover ${covers[i % covers.length]}" style="position:relative;overflow:hidden;">
+            ${book.coverUrl
+              ? `<img src="${book.coverUrl}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" alt="${book.title}"/>`
+              : `<div class="book-cover-placeholder">${bookSvg}</div>`
+            }
+            <span class="lang-badge" style="position:absolute;top:8px;right:8px;">${(book.lang||'fr').toUpperCase()}</span>
           </div>
           <div class="book-body">
             <div class="book-title">${book.title}</div>
@@ -344,7 +347,6 @@
             </div>
           </div>
         </a>`).join('');
-      // Re-apply current filters
       if (window.applyFilters) window.applyFilters();
     }
     window._renderBooksGrid = renderBooksGrid;
