@@ -307,6 +307,21 @@
     </div>
   </div>
 
+  <!-- LANG CHOOSER inline — must load before Firebase so buttons work immediately -->
+  <script>
+    function chooseLang(lang) {
+      localStorage.setItem('eden-lang', lang);
+      const screen = document.getElementById('lang-screen');
+      const site = document.getElementById('site');
+      if (screen) screen.classList.add('hidden');
+      if (site) site.style.display = 'block';
+      setTimeout(() => { if (screen) screen.style.display = 'none'; }, 650);
+      window._pendingLang = lang;
+      if (window.applyTranslations) window.applyTranslations(lang);
+    }
+    window.chooseLang = chooseLang;
+  </script>
+
   <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -742,6 +757,12 @@
     window.toggleLangPopup = toggleLangPopup;
     window.closeLangPopup = closeLangPopup;
     window.switchLang = switchLang;
+    window.applyTranslations = applyTranslations;
+    window.filterLang = filterLang;
+
+    // Apply language now that everything is ready
+    const _langToApply = window._pendingLang || localStorage.getItem('eden-lang') || 'fr';
+    applyTranslations(_langToApply);
   </script>
 </body>
 </html>
