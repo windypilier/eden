@@ -366,27 +366,6 @@
       try {
         const snap = await getDocs(collection(db, "books"));
         _books = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-        // If no books in Firestore yet, seed with the hardcoded ones
-        if (_books.length === 0) {
-          const seedBooks = [
-            { id:'grace-desert', title:'La grâce du désert', author:'Windy', lang:'fr', genre:'temoignage', status:'ongoing', summary:'Dans les vastes étendues arides d\'une foi mise à l\'épreuve, Marie découvre que les saisons de sécheresse spirituelle cachent souvent les plus profondes racines de la grâce.', chaptersCount:1 },
-            { id:'jardin-prometido', title:'El jardín prometido', author:'Windy', lang:'es', genre:'fiction', status:'ongoing', summary:'Una historia de fe y esperanza en medio de las pruebas de la vida.', chaptersCount:3 },
-            { id:'light-after-storm', title:'Light after the storm', author:'Windy', lang:'en', genre:'romance', status:'ongoing', summary:'A story of love, faith and redemption after the darkest storms of life.', chaptersCount:5 },
-            { id:'chants-aurore', title:'Chants de l\'aurore', author:'Windy', lang:'fr', genre:'poesie', status:'ongoing', summary:'Un recueil de poèmes chrétiens qui célèbrent la grâce divine au lever du jour.', chaptersCount:1 },
-            { id:'camino-de-fe', title:'Camino de fe', author:'Windy', lang:'es', genre:'temoignage', status:'ongoing', summary:'Un testimonio de cómo la fe puede transformar una vida completamente.', chaptersCount:2 },
-            { id:'little-shepherd', title:'The little shepherd', author:'Windy', lang:'en', genre:'jeunesse', status:'ongoing', summary:'A children\'s story about a young shepherd who learns the greatest lessons of faith.', chaptersCount:1 }
-          ];
-          for (const book of seedBooks) {
-            const { id, ...data } = book;
-            await addDoc(collection(db, "books"), { ...data, createdAt: serverTimestamp() });
-          }
-          // Reload after seeding
-          const snap2 = await getDocs(collection(db, "books"));
-          _books = snap2.docs.map(d => ({ id: d.id, ...d.data() }));
-          showToast('Livres importés automatiquement !');
-        }
-
         document.getElementById('stat-books').textContent = _books.length;
         renderAdminBooks();
         updateBookSelect();
