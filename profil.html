@@ -21,13 +21,13 @@
     @keyframes spin { to { transform:rotate(360deg); } }
     .loading-text { font-size:11px; color:rgba(160,140,200,0.6); letter-spacing:3px; text-transform:uppercase; }
 
-    #main { display:none; max-width:600px; margin:0 auto; padding:2rem 1.5rem; } { display:none; flex-direction:column; align-items:center; justify-content:center; min-height:60vh; text-align:center; padding:2rem; gap:1.5rem; }
+    #main { display:none; max-width:600px; margin:0 auto; padding:2rem 1.5rem; }
+    #not-signed-in { display:none; flex-direction:column; align-items:center; justify-content:center; min-height:60vh; text-align:center; padding:2rem; gap:1.5rem; }
     .nsi-logo { font-family:'Cinzel',serif; font-size:32px; color:var(--gold); letter-spacing:8px; }
     .nsi-text { font-size:13px; color:rgba(255,255,255,0.5); line-height:1.7; max-width:300px; }
     .google-btn { display:flex; align-items:center; justify-content:center; gap:10px; padding:13px 28px; border-radius:8px; background:#fff; color:#333; font-size:13px; font-family:'Inter',sans-serif; font-weight:500; cursor:pointer; border:none; }
     .google-btn svg { width:18px; height:18px; }
 
-    #main { display:none; max-width:600px; margin:0 auto; padding:2rem 1.5rem; }
     .page-title { font-family:'Cinzel',serif; font-size:11px; letter-spacing:4px; color:var(--gold); text-transform:uppercase; margin-bottom:2rem; opacity:0.8; }
 
     .profile-card { background:rgba(14,8,40,0.7); border:0.5px solid var(--border-purple); border-radius:16px; padding:1.8rem; margin-bottom:1.5rem; display:flex; align-items:center; gap:1.5rem; }
@@ -120,14 +120,14 @@
   </nav>
 
   <script>
-    // Fallback: if Firebase hasn't resolved in 5s, show not-signed-in
+    // Fallback: if Firebase hasn't resolved in 3s, show not-signed-in
     window._authResolved = false;
     setTimeout(function() {
       if (!window._authResolved) {
         document.getElementById('loading').style.display = 'none';
         document.getElementById('not-signed-in').style.display = 'flex';
       }
-    }, 5000);
+    }, 3000);
   </script>
 
   <div id="loading"><div class="spinner"></div><div class="loading-text">Chargement</div></div>
