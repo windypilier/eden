@@ -21,7 +21,7 @@
     @keyframes spin { to { transform:rotate(360deg); } }
     .loading-text { font-size:11px; color:rgba(160,140,200,0.6); letter-spacing:3px; text-transform:uppercase; }
 
-    #not-signed-in { display:none; flex-direction:column; align-items:center; justify-content:center; min-height:60vh; text-align:center; padding:2rem; gap:1.5rem; }
+    #main { display:none; max-width:600px; margin:0 auto; padding:2rem 1.5rem; } { display:none; flex-direction:column; align-items:center; justify-content:center; min-height:60vh; text-align:center; padding:2rem; gap:1.5rem; }
     .nsi-logo { font-family:'Cinzel',serif; font-size:32px; color:var(--gold); letter-spacing:8px; }
     .nsi-text { font-size:13px; color:rgba(255,255,255,0.5); line-height:1.7; max-width:300px; }
     .google-btn { display:flex; align-items:center; justify-content:center; gap:10px; padding:13px 28px; border-radius:8px; background:#fff; color:#333; font-size:13px; font-family:'Inter',sans-serif; font-weight:500; cursor:pointer; border:none; }
@@ -118,6 +118,17 @@
     <a class="nav-back" href="index.html"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></a>
     <a class="nav-logo" href="index.html">EDEN</a>
   </nav>
+
+  <script>
+    // Fallback: if Firebase hasn't resolved in 5s, show not-signed-in
+    window._authResolved = false;
+    setTimeout(function() {
+      if (!window._authResolved) {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('not-signed-in').style.display = 'flex';
+      }
+    }, 5000);
+  </script>
 
   <div id="loading"><div class="spinner"></div><div class="loading-text">Chargement</div></div>
 
@@ -352,6 +363,7 @@
     };
 
     onAuthStateChanged(auth, async (user) => {
+      window._authResolved = true;
       document.getElementById('loading').style.display = 'none';
       if (user) {
         document.getElementById('main').style.display = 'block';

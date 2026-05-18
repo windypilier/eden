@@ -618,8 +618,17 @@
     onAuthStateChanged(auth, async function(user) {
       var navArea = document.getElementById('nav-user-area');
       if (user) {
-        navArea.innerHTML = user.photoURL
-          ? '<a href="profil.html" class="nav-icon" style="padding:0;overflow:hidden;"><img src="'+user.photoURL+'" class="nav-avatar"></a>'
+        // Load custom photo from Firestore first
+        var photoUrl = user.photoURL;
+        try {
+          var userSnap = await getDoc(doc(db, 'users', user.uid));
+          if (userSnap.exists() && userSnap.data().photo) {
+            photoUrl = userSnap.data().photo;
+          }
+        } catch(e) {}
+
+        navArea.innerHTML = photoUrl
+          ? '<a href="profil.html" class="nav-icon" style="padding:0;overflow:hidden;"><img src="'+photoUrl+'" class="nav-avatar"></a>'
           : '<a href="profil.html" class="nav-avatar-placeholder">'+(user.displayName||'U')[0].toUpperCase()+'</a>';
         if (user.email === 'windy.pilierreyes@gmail.com') {
           var ab = document.createElement('a');
