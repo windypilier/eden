@@ -130,9 +130,17 @@
     .modal-close { margin-top:1.2rem; font-size:11px; color:rgba(160,140,200,0.6); cursor:pointer; letter-spacing:1px; }
     .modal-close:hover { color:var(--gold); }
 
-    /* NOTIF PANEL */
-    #notif-overlay { position:fixed; inset:0; z-index:149; display:none; }
-    #notif-panel { position:fixed; top:62px; right:1.5rem; width:300px; background:#0D0A22; border:0.5px solid #2A1A6A; border-radius:12px; z-index:150; display:none; box-shadow:0 8px 32px rgba(0,0,0,0.5); overflow:hidden; }
+    /* USERNAME MODAL */
+    #username-modal { position:fixed; inset:0; background:rgba(10,6,30,0.92); backdrop-filter:blur(8px); z-index:500; display:none; align-items:center; justify-content:center; padding:1.5rem; }
+    #username-modal.open { display:flex; }
+    .username-box { background:#160D42; border:0.5px solid var(--border-purple); border-radius:16px; padding:2rem; max-width:360px; width:100%; text-align:center; }
+    .username-logo { font-family:'Cinzel',serif; font-size:22px; color:var(--gold); letter-spacing:6px; margin-bottom:0.5rem; }
+    .username-title { font-size:14px; color:#fff; margin-bottom:0.5rem; font-weight:400; }
+    .username-sub { font-size:11px; color:rgba(255,255,255,0.4); margin-bottom:1.5rem; line-height:1.6; }
+    .username-input { width:100%; background:rgba(8,4,24,0.8); border:0.5px solid var(--border-purple); border-radius:8px; padding:12px 16px; font-size:14px; color:#fff; font-family:'Inter',sans-serif; outline:none; text-align:center; letter-spacing:1px; transition:border-color 0.2s; margin-bottom:0.6rem; }
+    .username-input:focus { border-color:var(--gold); }
+    .username-hint { font-size:10px; color:rgba(255,255,255,0.25); margin-bottom:1.2rem; letter-spacing:1px; }
+    .username-btn { width:100%; padding:12px; border-radius:8px; background:linear-gradient(135deg,var(--gold),var(--gold-light)); color:#160D42; border:none; font-size:11px; font-family:'Inter',sans-serif; letter-spacing:2px; cursor:pointer; text-transform:uppercase; font-weight:500; }
 
     footer { background:var(--bg-deep); border-top:0.5px solid var(--border-purple); padding:1.5rem; text-align:center; font-size:10px; color:rgba(140,120,180,0.5); letter-spacing:1px; }
     ::-webkit-scrollbar { width:4px; }
@@ -296,6 +304,18 @@
     </footer>
 
   </div><!-- end #site -->
+
+  <!-- USERNAME MODAL -->
+  <div id="username-modal">
+    <div class="username-box">
+      <div class="username-logo">EDEN</div>
+      <div class="username-title">Choisis ton pseudo</div>
+      <div class="username-sub">Ce nom sera visible sur tes commentaires. Tu pourras le changer depuis ton profil.</div>
+      <input class="username-input" id="username-input" type="text" maxlength="20" placeholder="Mon pseudo..."/>
+      <div class="username-hint">Entre 3 et 20 caractères — pas d'espace</div>
+      <button class="username-btn" onclick="saveUsername()">Confirmer</button>
+    </div>
+  </div>
 
   <!-- SIGN IN MODAL -->
   <div class="modal-overlay" id="signin-modal">
@@ -518,6 +538,13 @@
     }
 
     // ── MODALS ───────────────────────────────────────────────
+    function saveUsername() {
+      var input = document.getElementById('username-input').value.trim();
+      if (input.length < 3) { alert('Le pseudo doit faire au moins 3 caractères.'); return; }
+      if (input.includes(' ')) { alert('Pas d\'espace dans le pseudo.'); return; }
+      if (window._saveUsername) window._saveUsername(input);
+    }
+
     function openSignIn() { document.getElementById('signin-modal').classList.add('open'); }
     function closeSignIn() { document.getElementById('signin-modal').classList.remove('open'); }
     function signInWithGoogle() { if (window._firebaseSignIn) window._firebaseSignIn(); }
@@ -643,8 +670,33 @@
         var snap = await getDoc(ref);
         if (!snap.exists()) {
           await setDoc(ref, {name:user.displayName, email:user.email, photo:user.photoURL, library:[], createdAt:new Date().toISOString()});
+          // New user — ask for username
+          document.getElementById('signin-modal').classList.remove('open');
+          document.getElementById('username-modal').classList.add('open');
+          document.getElementById('username-input').focus();
+          window._pendingUid = user.uid;
+        } else {
+          var data = snap.data();
+          if (!data.username) {
+            // Existing user without username — ask for it
+            document.getElementById('signin-modal').classList.remove('open');
+            document.getElementById('username-modal').classList.add('open');
+            document.getElementById('username-input').focus();
+            window._pendingUid = user.uid;
+          } else {
+            document.getElementById('signin-modal').classList.remove('open');
+            location.reload();
+          }
         }
-        document.getElementById('signin-modal').classList.remove('open');
+      } catch(e) { console.error(e); }
+    };
+
+    window._saveUsername = async function(username) {
+      var uid = window._pendingUid;
+      if (!uid) return;
+      try {
+        await setDoc(doc(db,'users',uid), { username: username }, { merge: true });
+        document.getElementById('username-modal').classList.remove('open');
         location.reload();
       } catch(e) { console.error(e); }
     };

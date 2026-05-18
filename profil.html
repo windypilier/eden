@@ -220,7 +220,18 @@
 
     <div class="section">
       <div class="section-header">Compte</div>
-      <div class="setting-item" id="admin-link" style="display:none;align-items:center;justify-content:space-between;padding:1rem 1.5rem;cursor:pointer;transition:background 0.2s;" onclick="window.location.href='admin.html'">
+      <div class="setting-item" onclick="openUsernameEdit()">
+        <div class="setting-left">
+          <div class="setting-icon gold">
+            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+          <div>
+            <div class="setting-label">Pseudo</div>
+            <div class="setting-sub" id="current-username">Chargement...</div>
+          </div>
+        </div>
+        <div class="setting-right"><div class="arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+      </div>
         <div class="setting-left">
           <div class="setting-icon gold">
             <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
@@ -258,6 +269,17 @@
         </div>
         <div class="setting-right"><div class="arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div></div>
       </div>
+    </div>
+  </div>
+
+  <!-- USERNAME EDIT MODAL -->
+  <div class="modal-overlay" id="username-edit-modal">
+    <div style="background:#160D42;border:0.5px solid #2A1A6A;border-radius:16px;padding:2rem;max-width:340px;width:100%;text-align:center;">
+      <div style="font-family:Cinzel,serif;font-size:14px;color:#C9A84C;letter-spacing:2px;margin-bottom:1rem;">Changer le pseudo</div>
+      <input id="new-username-input" type="text" maxlength="20" placeholder="Nouveau pseudo..." style="width:100%;background:rgba(8,4,24,0.8);border:0.5px solid #2A1A6A;border-radius:8px;padding:12px 16px;font-size:14px;color:#fff;font-family:Inter,sans-serif;outline:none;text-align:center;letter-spacing:1px;margin-bottom:0.6rem;"/>
+      <div style="font-size:10px;color:rgba(255,255,255,0.25);margin-bottom:1.2rem;letter-spacing:1px;">Entre 3 et 20 caractères — pas d'espace</div>
+      <button onclick="saveNewUsername()" style="width:100%;padding:12px;border-radius:8px;background:linear-gradient(135deg,#C9A84C,#F0D080);color:#160D42;border:none;font-size:11px;font-family:Inter,sans-serif;letter-spacing:2px;cursor:pointer;text-transform:uppercase;font-weight:500;margin-bottom:0.8rem;">Confirmer</button>
+      <div onclick="document.getElementById('username-edit-modal').classList.remove('open')" style="font-size:11px;color:rgba(160,140,200,0.6);cursor:pointer;letter-spacing:1px;">Annuler</div>
     </div>
   </div>
 
@@ -324,6 +346,20 @@
           adminEl.style.padding = '1rem 1.5rem';
           adminEl.style.cursor = 'pointer';
         }
+
+        // Load username
+        const usernameEl = document.getElementById('current-username');
+        if (snap.exists() && snap.data().username) {
+          usernameEl.textContent = snap.data().username;
+        } else {
+          usernameEl.textContent = 'Pas encore défini';
+        }
+
+        window._updateUsername = async (username) => {
+          await updateDoc(doc(db, 'users', user.uid), { username });
+          document.getElementById('current-username').textContent = username;
+          document.getElementById('username-edit-modal').classList.remove('open');
+        };
         const avatarEl = document.getElementById('avatar');
         if (user.photoURL) {
           avatarEl.innerHTML = `<img src="${user.photoURL}" alt="${user.displayName}"/>`;
@@ -554,6 +590,19 @@
     function doSignOut() { if(window._firebaseSignOut) window._firebaseSignOut(); }
     function doDeleteAccount() { if(window._firebaseDelete) window._firebaseDelete(); }
     function signInWithGoogle() { if(window._firebaseSignIn) window._firebaseSignIn(); }
+    function openUsernameEdit() {
+      var current = document.getElementById('current-username').textContent;
+      document.getElementById('new-username-input').value = current === 'Chargement...' ? '' : current;
+      document.getElementById('username-edit-modal').classList.add('open');
+    }
+    function saveNewUsername() {
+      var val = document.getElementById('new-username-input').value.trim();
+      if (val.length < 3) { alert('Minimum 3 caractères.'); return; }
+      if (val.includes(' ')) { alert('Pas d\'espace dans le pseudo.'); return; }
+      if (window._updateUsername) window._updateUsername(val);
+    }
+    window.openUsernameEdit = openUsernameEdit;
+    window.saveNewUsername = saveNewUsername;
     window.toggleLang=toggleLang; window.setLang=setLang; window.toggleEl=toggleEl;
     window.toggleNotifSection=toggleNotifSection; window.togglePref=togglePref;
     window.doSignOut=doSignOut; window.doDeleteAccount=doDeleteAccount; window.signInWithGoogle=signInWithGoogle;
