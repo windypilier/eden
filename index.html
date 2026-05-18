@@ -311,26 +311,32 @@
   <script>
     function chooseLang(lang) {
       localStorage.setItem('eden-lang', lang);
-      // Hide screen and show site
       const screen = document.getElementById('lang-screen');
       const site = document.getElementById('site');
       if (screen) { screen.style.opacity = '0'; screen.style.visibility = 'hidden'; }
       if (site) site.style.display = 'block';
       setTimeout(() => { if (screen) screen.style.display = 'none'; }, 600);
-      window._pendingLang = lang;
-      if (window.applyTranslations) window.applyTranslations(lang);
+      // Apply translations if already ready, otherwise store for later
+      if (window.applyTranslations) {
+        window.applyTranslations(lang);
+      } else {
+        window._pendingLang = lang;
+      }
     }
     window.chooseLang = chooseLang;
 
-    // If lang already saved, skip screen immediately
-    window.addEventListener('DOMContentLoaded', () => {
+    // Hide lang screen immediately if lang already chosen
+    document.addEventListener('DOMContentLoaded', () => {
       const saved = localStorage.getItem('eden-lang');
+      const screen = document.getElementById('lang-screen');
+      const site = document.getElementById('site');
       if (saved) {
-        const screen = document.getElementById('lang-screen');
-        const site = document.getElementById('site');
         if (screen) screen.style.display = 'none';
         if (site) site.style.display = 'block';
         window._pendingLang = saved;
+      } else {
+        if (screen) screen.style.display = 'flex';
+        if (site) site.style.display = 'none';
       }
     });
   </script>
@@ -507,7 +513,7 @@
         notif_title:'Notifications', notif_settings:'Paramètres →', notif_empty:'Aucune notification pour l\'instant.',
         notif_admin_reply:'EDEN a répondu', notif_new_chapter:'Nouveau chapitre disponible',
         no_results:'Aucun livre dans ce genre pour l\'instant.',
-        tagline:'Toutes sortes d\'histoires chrétiennes dans ce jardin',
+        tagline:'Seulement des histoires chrétiennes dans ce jardin',
         verse_ref:'Matthieu 6:22',
         genres:['Tous','Fiction','Non-fiction','Témoignage','Romance','Aventure','Thriller','Mystère','Historique','Fantastique','Drame','Poésie','Jeunesse','Biographie','Nouvelle'],
       es: {
@@ -770,9 +776,19 @@
     window.applyTranslations = applyTranslations;
     window.filterLang = filterLang;
 
-    // Apply language now that everything is ready
-    const _langToApply = window._pendingLang || localStorage.getItem('eden-lang') || 'fr';
-    applyTranslations(_langToApply);
+    // Apply translations after DOM is fully ready
+    function initTranslations() {
+      const lang = window._pendingLang || localStorage.getItem('eden-lang') || 'fr';
+      applyTranslations(lang);
+      // If chooseLang was called before applyTranslations was ready, apply now
+      if (window._pendingLang) window._pendingLang = null;
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initTranslations);
+    } else {
+      initTranslations();
+    }
   </script>
 </body>
 </html>
