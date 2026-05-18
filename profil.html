@@ -21,13 +21,13 @@
     @keyframes spin { to { transform:rotate(360deg); } }
     .loading-text { font-size:11px; color:rgba(160,140,200,0.6); letter-spacing:3px; text-transform:uppercase; }
 
-    #main { display:none; max-width:600px; margin:0 auto; padding:2rem 1.5rem; }
     #not-signed-in { display:none; flex-direction:column; align-items:center; justify-content:center; min-height:60vh; text-align:center; padding:2rem; gap:1.5rem; }
     .nsi-logo { font-family:'Cinzel',serif; font-size:32px; color:var(--gold); letter-spacing:8px; }
     .nsi-text { font-size:13px; color:rgba(255,255,255,0.5); line-height:1.7; max-width:300px; }
     .google-btn { display:flex; align-items:center; justify-content:center; gap:10px; padding:13px 28px; border-radius:8px; background:#fff; color:#333; font-size:13px; font-family:'Inter',sans-serif; font-weight:500; cursor:pointer; border:none; }
     .google-btn svg { width:18px; height:18px; }
 
+    #main { display:none; max-width:600px; margin:0 auto; padding:2rem 1.5rem; }
     .page-title { font-family:'Cinzel',serif; font-size:11px; letter-spacing:4px; color:var(--gold); text-transform:uppercase; margin-bottom:2rem; opacity:0.8; }
 
     .profile-card { background:rgba(14,8,40,0.7); border:0.5px solid var(--border-purple); border-radius:16px; padding:1.8rem; margin-bottom:1.5rem; display:flex; align-items:center; gap:1.5rem; }
@@ -83,10 +83,8 @@
     .toggle.on { background:var(--gold); }
     .toggle::after { content:''; position:absolute; width:16px; height:16px; background:#fff; border-radius:50%; top:3px; left:3px; transition:transform 0.2s; }
     .toggle.on::after { transform:translateX(18px); }
-    .avatar-wrap { position:relative; flex-shrink:0; }
-    .avatar-edit { position:absolute; bottom:0; right:0; width:22px; height:22px; border-radius:50%; background:var(--gold); display:flex; align-items:center; justify-content:center; cursor:pointer; border:2px solid #160D42; }
-    .avatar-edit svg { width:10px; height:10px; stroke:#160D42; fill:none; stroke-width:2.5; }
-    .avatar-edit input { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; border-radius:50%; }
+    .lang-options { display:none; padding:0.8rem 1.5rem; gap:8px; flex-wrap:wrap; background:rgba(14,8,40,0.4); }
+    .lang-options.open { display:flex; }
     .lang-opt { padding:7px 18px; border-radius:20px; font-size:11px; letter-spacing:2px; cursor:pointer; border:0.5px solid var(--border-purple); background:transparent; color:rgba(160,140,200,0.8); font-family:'Inter',sans-serif; text-transform:uppercase; transition:all 0.2s; }
     .lang-opt.on { border-color:var(--gold); color:var(--gold); }
     .setting-item.danger .setting-label { color:#E05A5A; }
@@ -119,17 +117,6 @@
     <a class="nav-logo" href="index.html">EDEN</a>
   </nav>
 
-  <script>
-    // Fallback: if Firebase hasn't resolved in 3s, show not-signed-in
-    window._authResolved = false;
-    setTimeout(function() {
-      if (!window._authResolved) {
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('not-signed-in').style.display = 'flex';
-      }
-    }, 3000);
-  </script>
-
   <div id="loading"><div class="spinner"></div><div class="loading-text">Chargement</div></div>
 
   <div id="not-signed-in">
@@ -150,15 +137,9 @@
     <div class="page-title">Mon Profil</div>
 
     <div class="profile-card">
-      <div class="avatar-wrap">
-        <div class="avatar" id="avatar"><span class="avatar-placeholder" id="avatar-initial">?</span></div>
-        <div class="avatar-edit" title="Changer la photo">
-          <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          <input type="file" accept="image/*" onchange="uploadProfilePhoto(this)"/>
-        </div>
-      </div>
+      <div class="avatar" id="avatar"><span class="avatar-placeholder" id="avatar-initial">?</span></div>
       <div class="profile-info">
-        <div class="profile-name" id="profile-username">—</div>
+        <div class="profile-name" id="profile-name">—</div>
         <div class="profile-email" id="profile-email">—</div>
         <div class="google-badge">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.283 10.356h-8.327v3.451h4.792c-.446 2.193-2.313 3.453-4.792 3.453a5.27 5.27 0 0 1-5.279-5.28 5.27 5.27 0 0 1 5.279-5.279c1.259 0 2.397.447 3.29 1.178l2.6-2.599c-1.584-1.381-3.615-2.233-5.89-2.233a8.908 8.908 0 0 0-8.934 8.934 8.908 8.908 0 0 0 8.934 8.934c4.467 0 8.529-3.249 8.529-8.934 0-.528-.081-1.097-.202-1.625z"/></svg>
@@ -166,6 +147,7 @@
         </div>
       </div>
     </div>
+
     <div class="stats-grid">
       <div class="stat-card"><div class="stat-number" id="stat-books">0</div><div class="stat-label">Livres</div></div>
       <div class="stat-card"><div class="stat-number" id="stat-chapters">0</div><div class="stat-label">Chapitres</div></div>
@@ -194,111 +176,38 @@
         <button class="lang-opt" onclick="setLang(this,'es','Español')">ES</button>
         <button class="lang-opt" onclick="setLang(this,'en','English')">EN</button>
       </div>
-      <div class="setting-item" onclick="toggleNotifSection()">
+      <div class="setting-item" onclick="toggleEl('notif-toggle')">
         <div class="setting-left">
           <div class="setting-icon purple"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
-          <div><div class="setting-label" id="notif-label">Notifications</div><div class="setting-sub" id="notif-sub">Gérer mes préférences</div></div>
+          <div><div class="setting-label">Notifications</div><div class="setting-sub">Nouveaux chapitres et publications</div></div>
         </div>
-        <div class="setting-right">
-          <div class="arrow" id="notif-arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
-        </div>
+        <div class="setting-right"><div class="toggle on" id="notif-toggle"></div></div>
       </div>
-
-      <!-- NOTIF SUB-OPTIONS -->
-      <div id="notif-options" style="display:none;background:rgba(8,4,24,0.4);border-top:0.5px solid rgba(42,26,106,0.4);">
-        <div class="setting-item" style="padding:0.8rem 1.5rem 0.8rem 2.5rem;" onclick="togglePref('notif_new_chapter')">
-          <div class="setting-left">
-            <div style="font-size:13px;color:#fff;font-weight:400;" id="pref-chapter-label">Nouveau chapitre</div>
-          </div>
-          <div class="setting-right">
-            <div class="toggle" id="toggle-notif_new_chapter"></div>
-            <div style="font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:1px;" id="pref-chapter-type">Push</div>
-          </div>
+      <div class="setting-item" onclick="toggleEl('email-toggle')">
+        <div class="setting-left">
+          <div class="setting-icon purple"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+          <div><div class="setting-label">Notifications par email</div><div class="setting-sub">Un email à chaque nouveau chapitre</div></div>
         </div>
-        <div class="setting-item" style="padding:0.8rem 1.5rem 0.8rem 2.5rem;" onclick="togglePref('notif_chat_reply')">
-          <div class="setting-left">
-            <div style="font-size:13px;color:#fff;font-weight:400;" id="pref-chat-label">Réponse au chat</div>
-          </div>
-          <div class="setting-right">
-            <div class="toggle" id="toggle-notif_chat_reply"></div>
-            <div style="font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:1px;" id="pref-chat-type">Push</div>
-          </div>
-        </div>
-        <div class="setting-item" style="padding:0.8rem 1.5rem 0.8rem 2.5rem;border-bottom:none;" onclick="togglePref('email_new_chapter')">
-          <div class="setting-left">
-            <div style="font-size:13px;color:#fff;font-weight:400;" id="pref-email-label">Email — Nouveau chapitre</div>
-          </div>
-          <div class="setting-right">
-            <div class="toggle" id="toggle-email_new_chapter"></div>
-            <div style="font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:1px;">Email</div>
-          </div>
-        </div>
+        <div class="setting-right"><div class="toggle" id="email-toggle"></div></div>
       </div>
     </div>
 
     <div class="section">
       <div class="section-header">Compte</div>
-      <div class="setting-item" onclick="openUsernameEdit()">
-        <div class="setting-left">
-          <div class="setting-icon gold">
-            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          </div>
-          <div>
-            <div class="setting-label">Pseudo</div>
-            <div class="setting-sub" id="current-username">Chargement...</div>
-          </div>
-        </div>
-        <div class="setting-right"><div class="arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div></div>
-      </div>
-      <div class="setting-item" id="admin-link" style="display:none;" onclick="window.location.href='admin.html'">
-        <div class="setting-left">
-          <div class="setting-icon gold">
-            <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-          </div>
-          <div>
-            <div class="setting-label" style="color:var(--gold);">Dashboard Admin</div>
-            <div class="setting-sub">Gérer les livres et chapitres</div>
-          </div>
-        </div>
-        <div class="setting-right"><div class="arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div></div>
-      </div>
-      <div class="setting-item" onclick="window.location.href='feedback.html'">
-        <div class="setting-left">
-          <div class="setting-icon purple">
-            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-          </div>
-          <div>
-            <div class="setting-label" id="chat-label">Chat</div>
-            <div class="setting-sub" id="chat-sub">Bugs, suggestions, messages privés</div>
-          </div>
-        </div>
-        <div class="setting-right"><div class="arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div></div>
-      </div>
       <div class="setting-item" onclick="document.getElementById('signout-modal').classList.add('open')">
         <div class="setting-left">
           <div class="setting-icon gold"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div>
-          <div><div class="setting-label" id="signout-label">Se déconnecter</div><div class="setting-sub" id="signout-sub">Fermer la session Google</div></div>
+          <div><div class="setting-label">Se déconnecter</div><div class="setting-sub">Fermer la session Google</div></div>
         </div>
         <div class="setting-right"><div class="arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div></div>
       </div>
       <div class="setting-item danger" onclick="document.getElementById('delete-modal').classList.add('open')">
         <div class="setting-left">
           <div class="setting-icon red"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></div>
-          <div><div class="setting-label" id="delete-label">Supprimer le compte</div><div class="setting-sub" id="delete-sub">Cette action est irréversible</div></div>
+          <div><div class="setting-label">Supprimer le compte</div><div class="setting-sub">Cette action est irréversible</div></div>
         </div>
         <div class="setting-right"><div class="arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div></div>
       </div>
-    </div>
-  </div>
-
-  <!-- USERNAME EDIT MODAL -->
-  <div class="modal-overlay" id="username-edit-modal">
-    <div style="background:#160D42;border:0.5px solid #2A1A6A;border-radius:16px;padding:2rem;max-width:340px;width:100%;text-align:center;">
-      <div style="font-family:Cinzel,serif;font-size:14px;color:#C9A84C;letter-spacing:2px;margin-bottom:1rem;">Changer le pseudo</div>
-      <input id="new-username-input" type="text" maxlength="20" placeholder="Nouveau pseudo..." style="width:100%;background:rgba(8,4,24,0.8);border:0.5px solid #2A1A6A;border-radius:8px;padding:12px 16px;font-size:14px;color:#fff;font-family:Inter,sans-serif;outline:none;text-align:center;letter-spacing:1px;margin-bottom:0.6rem;"/>
-      <div style="font-size:10px;color:rgba(255,255,255,0.25);margin-bottom:1.2rem;letter-spacing:1px;">Entre 3 et 20 caractères — pas d'espace</div>
-      <button onclick="saveNewUsername()" style="width:100%;padding:12px;border-radius:8px;background:linear-gradient(135deg,#C9A84C,#F0D080);color:#160D42;border:none;font-size:11px;font-family:Inter,sans-serif;letter-spacing:2px;cursor:pointer;text-transform:uppercase;font-weight:500;margin-bottom:0.8rem;">Confirmer</button>
-      <div onclick="document.getElementById('username-edit-modal').classList.remove('open')" style="font-size:11px;color:rgba(160,140,200,0.6);cursor:pointer;letter-spacing:1px;">Annuler</div>
     </div>
   </div>
 
@@ -330,7 +239,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, deleteUser } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import { getFirestore, doc, getDoc, setDoc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAHhYlri1s8EldAGRa7IaVr1vI_1R2Q0Lo",
@@ -344,110 +252,57 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-    const storage = getStorage(app);
     const provider = new GoogleAuthProvider();
     const covers = ['hc1','hc2','hc3'];
     const bookSvg = `<svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`;
 
-    window.uploadProfilePhoto = async (input) => {
-      const file = input.files[0];
-      if (!file || !auth.currentUser) return;
-      try {
-        const storageRef = ref(storage, `avatars/${auth.currentUser.uid}`);
-        await uploadBytes(storageRef, file);
-        const url = await getDownloadURL(storageRef);
-        await updateDoc(doc(db, 'users', auth.currentUser.uid), { photo: url });
-        const avatarEl = document.getElementById('avatar');
-        avatarEl.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;" alt="Photo"/>`;
-      } catch(e) { console.error(e); }
-    };
-
     onAuthStateChanged(auth, async (user) => {
-      window._authResolved = true;
       document.getElementById('loading').style.display = 'none';
       if (user) {
         document.getElementById('main').style.display = 'block';
         document.getElementById('not-signed-in').style.display = 'none';
-
-        // Set email immediately
+        document.getElementById('profile-name').textContent = user.displayName || 'Utilisateur';
         document.getElementById('profile-email').textContent = user.email || '';
-
-        // Set avatar
         const avatarEl = document.getElementById('avatar');
         if (user.photoURL) {
-          avatarEl.innerHTML = `<img src="${user.photoURL}" style="width:100%;height:100%;object-fit:cover;" alt="${user.displayName}"/>`;
+          avatarEl.innerHTML = `<img src="${user.photoURL}" alt="${user.displayName}"/>`;
         } else {
           document.getElementById('avatar-initial').textContent = user.displayName ? user.displayName[0].toUpperCase() : 'U';
         }
-
-        // Show admin link only for admin
-        if (user.email === 'windy.pilierreyes@gmail.com') {
-          document.getElementById('admin-link').style.display = 'flex';
-        }
-
-        // Load Firestore data
         try {
           const userRef = doc(db, "users", user.uid);
           const snap = await getDoc(userRef);
-          const data = snap.exists() ? snap.data() : {};
-
-          // Show username or displayName at top
-          const username = data.username || user.displayName || 'Utilisateur';
-          document.getElementById('profile-username').textContent = username;
-          document.getElementById('current-username').textContent = data.username || 'Pas encore défini';
-
-          // Custom photo from Storage
-          if (data.photo && data.photo !== user.photoURL) {
-            avatarEl.innerHTML = `<img src="${data.photo}" style="width:100%;height:100%;object-fit:cover;" alt="Photo"/>`;
-          }
-
-          // Stats
-          const lib = data.library || [];
-          document.getElementById('stat-books').textContent = lib.length;
-          document.getElementById('stat-chapters').textContent = lib.reduce((a,b) => a + (b.chaptersRead||0), 0);
-          document.getElementById('stat-finished').textContent = lib.filter(b => b.progress >= 100).length;
-
-          // History
-          const list = document.getElementById('history-list');
-          if (lib.length > 0) {
-            list.innerHTML = [...lib].reverse().map((item,i) => `
-              <div class="history-item">
-                <div class="history-cover ${['hc1','hc2','hc3'][i%3]}"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
-                <div class="history-info"><div class="history-title">${item.title||'—'}</div><div class="history-meta">${item.chapter||'—'}</div></div>
-                <div class="history-progress"><span class="prog-pct">${item.progress||0}%</span><div class="prog-bar-sm"><div class="prog-fill-sm" style="width:${item.progress||0}%"></div></div></div>
-              </div>`).join('');
-          }
-
-          // Lang
-          if (data.lang) {
-            const labels = {fr:'Français',es:'Español',en:'English'};
-            document.getElementById('current-lang-label').textContent = labels[data.lang]||'Français';
-            document.querySelectorAll('.lang-opt').forEach(b => {
-              b.classList.toggle('on', b.textContent.toLowerCase() === data.lang || (data.lang==='en' && b.textContent==='EN') || (data.lang==='fr' && b.textContent==='FR') || (data.lang==='es' && b.textContent==='ES'));
-            });
-          }
-
-          // Notif prefs
-          if (data.notifPrefs && window._loadPrefs) window._loadPrefs(data.notifPrefs);
-          window._userPrefs = data.notifPrefs || {};
-
-        } catch(e) { console.error(e); }
-
-        // Update username function
-        window._updateUsername = async (username) => {
-          await updateDoc(doc(db, 'users', user.uid), { username });
-          document.getElementById('current-username').textContent = username;
-          document.getElementById('profile-username').textContent = username;
-          document.getElementById('username-edit-modal').classList.remove('open');
-        };
-
-      } else {
+          if (snap.exists()) {
+            const data = snap.data();
+            const lib = data.library || [];
+            document.getElementById('stat-books').textContent = lib.length;
+            document.getElementById('stat-chapters').textContent = lib.reduce((a,b) => a + (b.chaptersRead||0), 0);
+            document.getElementById('stat-finished').textContent = lib.filter(b => b.progress >= 100).length;
+            const list = document.getElementById('history-list');
+            if (lib.length > 0) {
+              list.innerHTML = [...lib].reverse().map((item,i) => `
                 <div class="history-item">
                   <div class="history-cover ${covers[i%3]}">${bookSvg}</div>
                   <div class="history-info">
                     <div class="history-title">${item.title||'—'}</div>
                     <div class="history-meta">${item.chapter||''} · ${item.lastRead||''}</div>
                   </div>
+                  <div class="history-progress">
+                    <span class="prog-pct">${item.progress||0}%</span>
+                    <div class="prog-bar-sm"><div class="prog-fill-sm" style="width:${item.progress||0}%"></div></div>
+                  </div>
+                </div>`).join('');
+            }
+            if (data.lang) {
+              const labels = {fr:'Français',es:'Español',en:'English'};
+              document.getElementById('current-lang-label').textContent = labels[data.lang]||'Français';
+              document.querySelectorAll('.lang-opt').forEach(b => b.classList.remove('on'));
+              document.querySelectorAll('.lang-opt').forEach(b => { if(b.textContent.toLowerCase()===data.lang) b.classList.add('on'); });
+            }
+          } else {
+            await setDoc(userRef, { name:user.displayName, email:user.email, photo:user.photoURL, lang:'fr', library:[], createdAt:new Date() });
+          }
+        } catch(e) { console.error(e); }
       } else {
         document.getElementById('not-signed-in').style.display = 'flex';
         document.getElementById('main').style.display = 'none';
@@ -464,12 +319,6 @@
       const user = auth.currentUser;
       if (user) updateDoc(doc(db,"users",user.uid), {lang}).catch(()=>{});
     };
-    window._savePrefs = (prefs) => {
-      const user = auth.currentUser;
-      if (user) updateDoc(doc(db,"users",user.uid), { notifPrefs: prefs }).catch(()=>{});
-      window._userPrefs = prefs;
-    };
-    window._userPrefs = {};
   </script>
 
   <script>
@@ -563,12 +412,12 @@
     document.querySelectorAll('.setting-sub')[0].textContent = _t.lang_sub;
     document.querySelectorAll('.setting-label')[1].textContent = _t.notif_label;
     document.querySelectorAll('.setting-sub')[1].textContent = _t.notif_sub;
-    if(document.getElementById('chat-label')) document.getElementById('chat-label').textContent = {fr:'Chat',es:'Chat',en:'Chat'}[_savedLang]||'Chat';
-    if(document.getElementById('chat-sub')) document.getElementById('chat-sub').textContent = {fr:'Bugs, suggestions, messages privés',es:'Bugs, sugerencias, mensajes privados',en:'Bugs, suggestions, private messages'}[_savedLang]||'';
-    if(document.getElementById('signout-label')) document.getElementById('signout-label').textContent = _t.signout_label;
-    if(document.getElementById('signout-sub')) document.getElementById('signout-sub').textContent = _t.signout_sub;
-    if(document.getElementById('delete-label')) document.getElementById('delete-label').textContent = _t.delete_label;
-    if(document.getElementById('delete-sub')) document.getElementById('delete-sub').textContent = _t.delete_sub;
+    document.querySelectorAll('.setting-label')[2].textContent = _t.email_label;
+    document.querySelectorAll('.setting-sub')[2].textContent = _t.email_sub;
+    document.querySelectorAll('.setting-label')[3].textContent = _t.signout_label;
+    document.querySelectorAll('.setting-sub')[3].textContent = _t.signout_sub;
+    document.querySelectorAll('.setting-label')[4].textContent = _t.delete_label;
+    document.querySelectorAll('.setting-sub')[4].textContent = _t.delete_sub;
     document.querySelectorAll('.modal-title')[0].textContent = _t.signout_modal_title;
     document.querySelectorAll('.modal-text')[0].textContent = _t.signout_modal_text;
     document.querySelectorAll('.modal-title')[1].textContent = _t.delete_modal_title;
@@ -587,10 +436,7 @@
     });
     }); // end DOMContentLoaded
 
-    function toggleLang() {
-      const opts = document.getElementById('lang-options');
-      opts.style.display = opts.style.display === 'flex' ? 'none' : 'flex';
-    }
+    function toggleLang() { document.getElementById('lang-options').classList.toggle('open'); }
     function setLang(btn,lang,label) {
       document.querySelectorAll('.lang-opt').forEach(b=>b.classList.remove('on'));
       btn.classList.add('on');
@@ -599,61 +445,12 @@
       if(window._saveLang) window._saveLang(lang);
     }
     function toggleEl(id) { document.getElementById(id).classList.toggle('on'); }
-
-    // NOTIFICATION SECTION
-    let _notifOpen = false;
-    const _prefs = { notif_new_chapter: false, notif_chat_reply: false, email_new_chapter: false };
-
-    function toggleNotifSection() {
-      _notifOpen = !_notifOpen;
-      document.getElementById('notif-options').style.display = _notifOpen ? 'block' : 'none';
-      const arrow = document.getElementById('notif-arrow');
-      arrow.style.transform = _notifOpen ? 'rotate(90deg)' : '';
-    }
-
-    function togglePref(key) {
-      _prefs[key] = !_prefs[key];
-      const toggle = document.getElementById('toggle-' + key);
-      toggle.classList.toggle('on', _prefs[key]);
-      if (window._savePrefs) window._savePrefs({ ...window._userPrefs, [key]: _prefs[key] });
-    }
-
-    function loadPrefs(prefs) {
-      if (!prefs) return;
-      Object.keys(_prefs).forEach(key => {
-        if (prefs[key] !== undefined) {
-          _prefs[key] = prefs[key];
-          const toggle = document.getElementById('toggle-' + key);
-          if (toggle) toggle.classList.toggle('on', _prefs[key]);
-        }
-      });
-    }
-
-    window._loadPrefs = loadPrefs;
     function doSignOut() { if(window._firebaseSignOut) window._firebaseSignOut(); }
     function doDeleteAccount() { if(window._firebaseDelete) window._firebaseDelete(); }
     function signInWithGoogle() { if(window._firebaseSignIn) window._firebaseSignIn(); }
-    function openUsernameEdit() {
-      var current = document.getElementById('current-username').textContent;
-      document.getElementById('new-username-input').value = current === 'Chargement...' ? '' : current;
-      document.getElementById('username-edit-modal').classList.add('open');
-    }
-    function saveNewUsername() {
-      var val = (document.getElementById('new-username-input').value || '').trim();
-      if (val.length < 3) { alert('Minimum 3 caractères.'); return; }
-      if (val.includes(' ')) { alert('Pas d\'espace dans le pseudo.'); return; }
-      if (typeof window._updateUsername === 'function') {
-        window._updateUsername(val);
-      } else {
-        alert('Connexion Firebase non prête, réessaie dans un instant.');
-      }
-    }
-    window.openUsernameEdit = openUsernameEdit;
-    window.saveNewUsername = saveNewUsername;
+    document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if(e.target===o) o.classList.remove('open'); }));
     window.toggleLang=toggleLang; window.setLang=setLang; window.toggleEl=toggleEl;
-    window.toggleNotifSection=toggleNotifSection; window.togglePref=togglePref;
     window.doSignOut=doSignOut; window.doDeleteAccount=doDeleteAccount; window.signInWithGoogle=signInWithGoogle;
-    window.uploadProfilePhoto = window.uploadProfilePhoto || function(){};
   </script>
 </body>
 </html>
