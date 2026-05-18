@@ -148,7 +148,7 @@
         </div>
       </div>
       <div class="profile-info">
-        <div class="profile-name" id="profile-name">—</div>
+        <div class="profile-name" id="profile-username">—</div>
         <div class="profile-email" id="profile-email">—</div>
         <div class="google-badge">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.283 10.356h-8.327v3.451h4.792c-.446 2.193-2.313 3.453-4.792 3.453a5.27 5.27 0 0 1-5.279-5.28 5.27 5.27 0 0 1 5.279-5.279c1.259 0 2.397.447 3.29 1.178l2.6-2.599c-1.584-1.381-3.615-2.233-5.89-2.233a8.908 8.908 0 0 0-8.934 8.934 8.908 8.908 0 0 0 8.934 8.934c4.467 0 8.529-3.249 8.529-8.934 0-.528-.081-1.097-.202-1.625z"/></svg>
@@ -156,7 +156,6 @@
         </div>
       </div>
     </div>
-
     <div class="stats-grid">
       <div class="stat-card"><div class="stat-number" id="stat-books">0</div><div class="stat-label">Livres</div></div>
       <div class="stat-card"><div class="stat-number" id="stat-chapters">0</div><div class="stat-label">Chapitres</div></div>
@@ -358,15 +357,10 @@
       if (user) {
         document.getElementById('main').style.display = 'block';
         document.getElementById('not-signed-in').style.display = 'none';
-        document.getElementById('profile-name').textContent = user.displayName || 'Utilisateur';
+        document.getElementById('profile-username').textContent = snap.exists() && snap.data().username ? snap.data().username : (user.displayName || 'Utilisateur');
         document.getElementById('profile-email').textContent = user.email || '';
 
-        // Show admin link only for admin
-        if (user.email === 'windy.pilierreyes@gmail.com') {
-          document.getElementById('admin-link').style.display = 'flex';
-        }
-
-        // Load username
+        // Load username in settings
         const usernameEl = document.getElementById('current-username');
         if (snap.exists() && snap.data().username) {
           usernameEl.textContent = snap.data().username;
@@ -374,9 +368,15 @@
           usernameEl.textContent = 'Pas encore défini';
         }
 
+        // Show admin link only for admin
+        if (user.email === 'windy.pilierreyes@gmail.com') {
+          document.getElementById('admin-link').style.display = 'flex';
+        }
+
         window._updateUsername = async (username) => {
           await updateDoc(doc(db, 'users', user.uid), { username });
           document.getElementById('current-username').textContent = username;
+          document.getElementById('profile-username').textContent = username;
           document.getElementById('username-edit-modal').classList.remove('open');
         };
         const avatarEl = document.getElementById('avatar');
@@ -539,9 +539,6 @@
     document.querySelectorAll('.setting-sub')[0].textContent = _t.lang_sub;
     document.querySelectorAll('.setting-label')[1].textContent = _t.notif_label;
     document.querySelectorAll('.setting-sub')[1].textContent = _t.notif_sub;
-    document.querySelectorAll('.setting-label')[2].textContent = _t.email_label;
-    document.querySelectorAll('.setting-sub')[2].textContent = _t.email_sub;
-    // Use IDs for account section to avoid index collisions
     if(document.getElementById('chat-label')) document.getElementById('chat-label').textContent = {fr:'Chat',es:'Chat',en:'Chat'}[_savedLang]||'Chat';
     if(document.getElementById('chat-sub')) document.getElementById('chat-sub').textContent = {fr:'Bugs, suggestions, messages privés',es:'Bugs, sugerencias, mensajes privados',en:'Bugs, suggestions, private messages'}[_savedLang]||'';
     if(document.getElementById('signout-label')) document.getElementById('signout-label').textContent = _t.signout_label;
