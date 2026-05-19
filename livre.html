@@ -235,7 +235,8 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    const BOOK_ID = new URLSearchParams(window.location.search).get('book') || 'grace-desert';
+    const BOOK_ID = new URLSearchParams(window.location.search).get('book') || '';
+    window._BOOK_ID = BOOK_ID;
     let currentUser = null;
     let isInLibrary = false;
 
@@ -377,6 +378,8 @@
   </script>
 
   <script>
+    // Make BOOK_ID available immediately from URL
+    window._BOOK_ID = new URLSearchParams(window.location.search).get('book') || '';
     const savedLang = localStorage.getItem('eden-lang') || 'fr';
     const translations = {
       fr: {
@@ -446,7 +449,7 @@
     });
 
     function startReading() {
-      window.location.href = 'lecture.html?book=' + BOOK_ID + '&ch=' + (window._firstChapter || 1);
+      window.location.href = 'lecture.html?book=' + (window._BOOK_ID || '') + '&ch=' + (window._firstChapter || 1);
     }
     function toggleLibrary() { if (window._toggleLibrary) window._toggleLibrary(); }
 
