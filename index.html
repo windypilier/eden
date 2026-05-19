@@ -238,31 +238,7 @@
       </div>
     </section>
 
-    <section class="genres-section">
-      <div class="section-label" id="genres-label">Genres</div>
-      <div class="genres">
-        <button class="genre-btn on" onclick="filterGenre(this,'all')">Tous</button>
-        <button class="genre-btn" onclick="filterGenre(this,'fiction')">Fiction</button>
-        <button class="genre-btn" onclick="filterGenre(this,'nonfiction')">Non-fiction</button>
-        <button class="genre-btn" onclick="filterGenre(this,'temoignage')">Témoignage</button>
-        <button class="genre-btn" onclick="filterGenre(this,'romance')">Romance</button>
-        <button class="genre-btn" onclick="filterGenre(this,'aventure')">Aventure</button>
-        <button class="genre-btn" onclick="filterGenre(this,'thriller')">Thriller</button>
-        <button class="genre-btn" onclick="filterGenre(this,'mystere')">Mystère</button>
-        <button class="genre-btn" onclick="filterGenre(this,'historique')">Historique</button>
-        <button class="genre-btn" onclick="filterGenre(this,'fantastique')">Fantastique</button>
-        <button class="genre-btn" onclick="filterGenre(this,'drame')">Drame</button>
-        <button class="genre-btn" onclick="filterGenre(this,'poesie')">Poésie</button>
-        <button class="genre-btn" onclick="filterGenre(this,'jeunesse')">Jeunesse</button>
-        <button class="genre-btn" onclick="filterGenre(this,'biographie')">Biographie</button>
-        <button class="genre-btn" onclick="filterGenre(this,'nouvelle')">Nouvelle</button>
-      </div>
-    </section>
-
     <section class="books-section">
-      <div class="sec-header">
-        <span class="sec-title" id="new-stories">Nouvelles histoires</span>
-      </div>
       <div class="books-grid" id="books-grid">
         <div style="grid-column:1/-1;text-align:center;padding:3rem;font-size:12px;color:rgba(255,255,255,0.3);">
           <div style="width:28px;height:28px;border:2px solid #2A1A6A;border-top-color:#C9A84C;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 1rem;"></div>
@@ -610,8 +586,7 @@
           +'<div class="book-cover '+covers[i%6]+'" style="'+coverStyle+'">'+placeholder
           +'<span class="lang-badge">'+(b.lang||'fr').toUpperCase()+'</span></div>'
           +'<div class="book-body"><div class="book-title">'+b.title+'</div>'
-          +'<div class="book-meta"><span>Ch. '+(b.chaptersCount||0)+'</span>'
-          +'<span class="genre-tag">'+(b.genre||'')+'</span></div></div></a>';
+          +'<div class="book-meta"><span>Ch. '+(b.chaptersCount||0)+'</span></div></div></a>';
       }).join('');
       if (window.applyFilters) window.applyFilters();
     });
