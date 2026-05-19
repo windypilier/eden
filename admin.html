@@ -573,7 +573,7 @@
       if (!title) { showToast('Le titre est obligatoire.'); return; }
       if (!summary) { showToast('Le résumé est obligatoire.'); return; }
 
-      const id = doc(collection(db, "books")).id;
+      const id = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2);
 
       // Show loading
       const btn = document.querySelector('.btn-submit');

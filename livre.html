@@ -302,7 +302,11 @@
     async function loadBook() {
       try {
         const snap = await getDoc(doc(db, 'books', BOOK_ID));
-        if (!snap.exists()) return;
+        if (!snap.exists()) {
+          document.getElementById('book-title').textContent = 'Livre introuvable';
+          document.getElementById('book-summary').textContent = 'Ce livre n\'existe pas ou a été supprimé.';
+          return;
+        }
         const b = snap.data();
 
         document.title = 'EDEN — ' + b.title;
