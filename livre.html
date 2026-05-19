@@ -131,15 +131,15 @@
     <div class="hero-blob"></div>
     <div class="hero-inner">
       <div class="book-cover-wrap">
-        <div class="book-cover cover-bg" id="book-cover">
-          <span class="lang-pill" id="book-lang">FR</span>
+        <div class="book-cover cover-bg" id="book-cover-img">
+          <span class="lang-pill" id="book-lang-badge">FR</span>
           <div class="book-cover-placeholder">
             <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
           </div>
         </div>
       </div>
       <div class="book-info">
-        <div class="book-genre-tag" id="book-genre">Témoignage</div>
+        <div class="book-genre-tag" id="book-genre-badge">—</div>
         <h1 class="book-title" id="book-title">La grâce du désert</h1>
         <div class="book-author" id="book-author">par Windy</div>
         <div class="book-stats">
@@ -299,18 +299,69 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    const BOOK_ID = 'grace-desert';
-    const BOOK_DATA = {
-      id: BOOK_ID,
-      title: 'La grâce du désert',
-      chapter: 'Ch. 2 / 12',
-      progress: 8,
-      chaptersRead: 1,
-      lastRead: 'Aujourd\'hui'
-    };
-
+    const BOOK_ID = new URLSearchParams(window.location.search).get('book') || 'grace-desert';
     let currentUser = null;
     let isInLibrary = false;
+
+    // Load book from Firestore
+    async function loadBook() {
+      try {
+        const snap = await getDoc(doc(db, 'books', BOOK_ID));
+        if (!snap.exists()) return;
+        const b = snap.data();
+
+        document.title = 'EDEN — ' + b.title;
+        document.getElementById('book-title').textContent = b.title;
+        document.getElementById('book-author').textContent = b.author || 'EDEN';
+        document.getElementById('book-lang-badge').textContent = (b.lang || 'fr').toUpperCase();
+        document.getElementById('book-genre-badge').textContent = b.genre || '';
+        document.getElementById('book-summary').textContent = b.summary || '';
+        document.getElementById('book-chapters-count').textContent = b.chaptersCount || 0;
+
+        // Status badge
+        const statusEl = document.getElementById('book-status');
+        if (statusEl) {
+          const t = window._livre_t || {};
+          statusEl.innerHTML = `<div class="status-dot"></div>${b.status === 'finished' ? (t.finished || 'Terminé') : (t.ongoing || 'En cours')}`;
+        }
+
+        // Cover image
+        const coverEl = document.getElementById('book-cover-img');
+        if (b.coverUrl && coverEl) {
+          const langPill = coverEl.querySelector('.lang-pill');
+          const langText = langPill ? langPill.outerHTML : '';
+          coverEl.innerHTML = `<img src="${b.coverUrl}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" alt="${b.title}"/>${langText}`;
+          coverEl.style.position = 'relative';
+        }
+
+        // Load chapters
+        const chapSnap = await getDoc(doc(db, 'books', BOOK_ID));
+        const { getDocs, collection, orderBy, query } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+        const chapQ = query(collection(db, 'books', BOOK_ID, 'chapters'), orderBy('number'));
+        const chapSnaps = await getDocs(chapQ);
+        const chapters = chapSnaps.docs.map(d => ({ id: d.id, ...d.data() }));
+        const chapList = document.getElementById('chapters-list');
+        if (chapList && chapters.length > 0) {
+          chapList.innerHTML = chapters.map(ch => `
+            <a class="chapter-item" href="lecture.html?book=${BOOK_ID}&ch=${ch.number}" style="text-decoration:none;">
+              <div class="ch-num">Ch. ${ch.number}</div>
+              <div class="ch-info">
+                <div class="ch-title">${ch.title}</div>
+                <div class="ch-meta">${ch.readTime || 1} min</div>
+              </div>
+              <div class="ch-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(160,140,200,0.5)" stroke-width="1.5" width="14" height="14"><polyline points="9 18 15 12 9 6"/></svg></div>
+            </a>`).join('');
+        } else if (chapList) {
+          chapList.innerHTML = '<div style="padding:1rem 1.5rem;font-size:12px;color:rgba(255,255,255,0.3);">Aucun chapitre publié pour l\'instant.</div>';
+        }
+
+        // Update start reading link
+        if (chapters.length > 0) {
+          window._firstChapter = chapters[0].number;
+        }
+      } catch(e) { console.error(e); }
+    }
+    loadBook();
 
     onAuthStateChanged(auth, async (user) => {
       currentUser = user;
@@ -449,7 +500,7 @@
       if (chProgressLabel) chProgressLabel.textContent = `1 / 12 ${t.chapters_read}`;
     });
 
-    function startReading() { window.location.href = 'lecture.html?book=grace-desert&ch=1'; }
+    function startReading() { window.location.href = 'lecture.html?book=' + BOOK_ID + '&ch=' + (window._firstChapter || 1); }
     function toggleLibrary() { if (window._toggleLibrary) window._toggleLibrary(); }
 
     function openShare() {
