@@ -220,7 +220,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, updateDoc, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAHhYlri1s8EldAGRa7IaVr1vI_1R2Q0Lo",
@@ -246,6 +246,7 @@
         if (!snap.exists()) {
           document.getElementById('book-title').textContent = 'Livre introuvable';
           document.getElementById('book-summary').textContent = 'Ce livre n\'existe pas ou a été supprimé.';
+          document.getElementById('chapters-list').innerHTML = '';
           return;
         }
         const b = snap.data();
@@ -256,55 +257,54 @@
         document.getElementById('book-lang-badge').textContent = (b.lang || 'fr').toUpperCase();
         document.getElementById('book-genre-badge').textContent = b.genre || '';
         document.getElementById('book-summary').textContent = b.summary || '';
-        document.getElementById('book-chapters-count').textContent = b.chaptersCount || 0;
+        document.getElementById('book-chapters-count').textContent = (b.chaptersCount || 0) + ' chapitres';
 
-        // Status badge
         const statusEl = document.getElementById('book-status');
         if (statusEl) {
-          const t = window._livre_t || {};
-          statusEl.innerHTML = `<div class="status-dot"></div>${b.status === 'finished' ? (t.finished || 'Terminé') : (t.ongoing || 'En cours')}`;
+          statusEl.innerHTML = '<div class="status-dot"></div>' + (b.status === 'finished' ? 'Terminé' : 'En cours de publication');
         }
 
-        // Cover image
-        const coverEl = document.getElementById('book-cover-img');
-        if (coverEl) {
-          if (b.coverUrl) {
+        if (b.coverUrl) {
+          const coverEl = document.getElementById('book-cover-img');
+          if (coverEl) {
             coverEl.style.backgroundImage = 'url(' + b.coverUrl + ')';
             coverEl.style.backgroundSize = 'cover';
             coverEl.style.backgroundPosition = 'center';
-            coverEl.querySelector('.book-cover-placeholder') && (coverEl.querySelector('.book-cover-placeholder').style.display = 'none');
+            const ph = coverEl.querySelector('.book-cover-placeholder');
+            if (ph) ph.style.display = 'none';
           }
         }
 
-        // Load chapters
-        const chapSnap = await getDoc(doc(db, 'books', BOOK_ID));
-        const { getDocs, collection, orderBy, query } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
-        const chapQ = query(collection(db, 'books', BOOK_ID, 'chapters'), orderBy('number'));
-        const chapSnaps = await getDocs(chapQ);
-        const chapters = chapSnaps.docs.map(d => ({ id: d.id, ...d.data() }));
-        const chapLabel = document.getElementById('chapters-progress-label');
-        if (chapLabel) chapLabel.textContent = chapters.length + ' chapitre' + (chapters.length > 1 ? 's' : '');
-        const chapters = chapSnaps.docs.map(d => ({ id: d.id, ...d.data() }));
-        const chapList = document.getElementById('chapters-list');
-        if (chapList && chapters.length > 0) {
-          chapList.innerHTML = chapters.map(ch => `
-            <a class="chapter-item" href="lecture.html?book=${BOOK_ID}&ch=${ch.number}" style="text-decoration:none;">
-              <div class="ch-num">Ch. ${ch.number}</div>
-              <div class="ch-info">
-                <div class="ch-title">${ch.title}</div>
-                <div class="ch-meta">${ch.readTime || 1} min</div>
-              </div>
-              <div class="ch-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(160,140,200,0.5)" stroke-width="1.5" width="14" height="14"><polyline points="9 18 15 12 9 6"/></svg></div>
-            </a>`).join('');
-        } else if (chapList) {
-          chapList.innerHTML = '<div style="padding:1rem 1.5rem;font-size:12px;color:rgba(255,255,255,0.3);">Aucun chapitre publié pour l\'instant.</div>';
-        }
+        window._bookData = { id: BOOK_ID, title: b.title, progress: 0 };
 
-        // Update start reading link
-        if (chapters.length > 0) {
-          window._firstChapter = chapters[0].number;
+        // Load chapters
+        const chapSnaps = await getDocs(query(collection(db, 'books', BOOK_ID, 'chapters'), orderBy('number')));
+        const chapters = chapSnaps.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        const chapLabel = document.getElementById('chapters-progress-label');
+        if (chapLabel) chapLabel.textContent = chapters.length + ' chapitre' + (chapters.length !== 1 ? 's' : '');
+
+        const chapList = document.getElementById('chapters-list');
+        if (chapList) {
+          if (chapters.length > 0) {
+            chapList.innerHTML = chapters.map(ch => `
+              <a class="chapter-item" href="lecture.html?book=${BOOK_ID}&ch=${ch.number}" style="text-decoration:none;">
+                <div class="chapter-num">${String(ch.number).padStart(2,'0')}</div>
+                <div class="chapter-info">
+                  <div class="chapter-title">${ch.title}</div>
+                  <div class="chapter-meta">~${ch.readTime || 1} min de lecture</div>
+                </div>
+                <div class="chapter-status"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(160,140,200,0.4)" stroke-width="1.5" width="14" height="14"><polyline points="9 18 15 12 9 6"/></svg></div>
+              </a>`).join('');
+            window._firstChapter = chapters[0].number;
+          } else {
+            chapList.innerHTML = '<div style="padding:1rem 1.5rem;font-size:12px;color:rgba(255,255,255,0.3);">Aucun chapitre publié pour l\'instant.</div>';
+          }
         }
-      } catch(e) { console.error(e); }
+      } catch(e) {
+        console.error('loadBook error:', e);
+        document.getElementById('book-title').textContent = 'Erreur de chargement';
+      }
     }
     loadBook();
 
@@ -367,7 +367,7 @@
         } else {
           const snap = await getDoc(userRef);
           const lib = snap.data().library || [];
-          lib.push(BOOK_DATA);
+          lib.push(window._bookData || { id: BOOK_ID, title: document.getElementById('book-title').textContent, progress: 0 });
           await updateDoc(userRef, { library: lib });
           isInLibrary = true;
         }
