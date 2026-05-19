@@ -196,69 +196,10 @@
     <div class="section-card">
       <div class="section-head">
         <span class="section-title">Chapitres</span>
-        <span style="font-size:10px;color:rgba(255,255,255,0.35);" id="chapters-progress-label">1 / 12 lus</span>
+        <span style="font-size:10px;color:rgba(255,255,255,0.35);" id="chapters-progress-label"></span>
       </div>
       <div id="chapters-list">
-
-        <a class="chapter-item" href="lecture.html?book=grace-desert&ch=1">
-          <div class="chapter-num">01</div>
-          <div class="chapter-info">
-            <div class="chapter-title">Le commencement du silence</div>
-            <div class="chapter-meta">~18 min de lecture</div>
-          </div>
-          <div class="chapter-status">
-            <div class="ch-done"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-          </div>
-        </a>
-
-        <a class="chapter-item" href="lecture.html?book=grace-desert&ch=2">
-          <div class="chapter-num">02</div>
-          <div class="chapter-info">
-            <div class="chapter-title">Les racines invisibles</div>
-            <div class="chapter-meta">~22 min de lecture</div>
-          </div>
-          <div class="chapter-status">
-            <div class="ch-current"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
-          </div>
-        </a>
-
-        <a class="chapter-item" href="lecture.html?book=grace-desert&ch=3">
-          <div class="chapter-num">03</div>
-          <div class="chapter-info">
-            <div class="chapter-title">La nuit de Gethsémani</div>
-            <div class="chapter-meta">~20 min de lecture</div>
-          </div>
-          <div class="chapter-status">
-            <div class="ch-locked"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
-          </div>
-        </a>
-
-        <a class="chapter-item" href="lecture.html?book=grace-desert&ch=4">
-          <div class="chapter-num">04</div>
-          <div class="chapter-info">
-            <div class="chapter-title">La voix dans le vent</div>
-            <div class="chapter-meta">~25 min de lecture</div>
-          </div>
-          <div class="chapter-status">
-            <div class="ch-locked"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
-          </div>
-        </a>
-
-        <a class="chapter-item" href="lecture.html?book=grace-desert&ch=5">
-          <div class="chapter-num">05</div>
-          <div class="chapter-info">
-            <div class="chapter-title">Eau vive</div>
-            <div class="chapter-meta">~19 min de lecture</div>
-          </div>
-          <div class="chapter-status">
-            <div class="ch-locked"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
-          </div>
-        </a>
-
-        <div class="chapter-item" style="justify-content:center;color:rgba(255,255,255,0.3);font-size:11px;letter-spacing:2px;cursor:default;">
-          + 7 chapitres à venir
-        </div>
-
+        <div style="padding:1rem 1.5rem;font-size:12px;color:rgba(255,255,255,0.3);">Chargement des chapitres...</div>
       </div>
     </div>
   </div>
@@ -267,7 +208,7 @@
   <div class="modal-overlay" id="share-modal">
     <div class="modal">
       <div class="modal-title">Partager ce livre</div>
-      <div class="share-link" id="share-url">eden-christianstories.com/livre.html?book=grace-desert</div>
+      <div class="share-link" id="share-url"></div>
       <div class="share-btns">
         <button class="share-btn" onclick="document.getElementById('share-modal').classList.remove('open')">Fermer</button>
         <button class="share-btn copy" id="copy-btn" onclick="copyLink()">Copier le lien</button>
@@ -340,6 +281,9 @@
         const { getDocs, collection, orderBy, query } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
         const chapQ = query(collection(db, 'books', BOOK_ID, 'chapters'), orderBy('number'));
         const chapSnaps = await getDocs(chapQ);
+        const chapters = chapSnaps.docs.map(d => ({ id: d.id, ...d.data() }));
+        const chapLabel = document.getElementById('chapters-progress-label');
+        if (chapLabel) chapLabel.textContent = chapters.length + ' chapitre' + (chapters.length > 1 ? 's' : '');
         const chapters = chapSnaps.docs.map(d => ({ id: d.id, ...d.data() }));
         const chapList = document.getElementById('chapters-list');
         if (chapList && chapters.length > 0) {
@@ -496,22 +440,23 @@
       if (shareBtnClose) shareBtnClose.textContent = t.close;
       const copyBtn = document.getElementById('copy-btn');
       if (copyBtn) copyBtn.textContent = t.copy;
-      // Chapters progress label
+      // Chapters progress label — cleared, set dynamically after chapters load
       const chProgressLabel = document.getElementById('chapters-progress-label');
-      if (chProgressLabel) chProgressLabel.textContent = `1 / 12 ${t.chapters_read}`;
+      if (chProgressLabel) chProgressLabel.textContent = '';
     });
 
-    function startReading() { window.location.href = 'lecture.html?book=' + BOOK_ID + '&ch=' + (window._firstChapter || 1); }
+    function startReading() {
+      window.location.href = 'lecture.html?book=' + BOOK_ID + '&ch=' + (window._firstChapter || 1);
+    }
     function toggleLibrary() { if (window._toggleLibrary) window._toggleLibrary(); }
 
     function openShare() {
       const url = window.location.href;
       const title = document.getElementById('book-title')?.textContent || 'EDEN';
-      const text = document.getElementById('book-summary')?.textContent?.slice(0,120) + '...' || '';
+      const text = (document.getElementById('book-summary')?.textContent || '').slice(0,120);
       if (navigator.share) {
         navigator.share({ title, text, url }).catch(() => {});
       } else {
-        // Fallback for desktop
         document.getElementById('share-url').textContent = url;
         document.getElementById('share-modal').classList.add('open');
       }
@@ -520,8 +465,9 @@
     function copyLink() {
       navigator.clipboard.writeText(window.location.href).then(() => {
         const btn = document.getElementById('copy-btn');
-        btn.textContent = t.copied;
-        setTimeout(() => { btn.textContent = t.copy; }, 2000);
+        const orig = btn.textContent;
+        btn.textContent = '✓ Copié !';
+        setTimeout(() => { btn.textContent = orig; }, 2000);
       });
     }
 
