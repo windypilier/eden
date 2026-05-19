@@ -90,7 +90,8 @@
     .books-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:12px; }
     .book-card { border-radius:12px; overflow:hidden; cursor:pointer; border:0.5px solid var(--border-purple); transition:border-color 0.2s,transform 0.2s; text-decoration:none; display:block; }
     .book-card:hover { border-color:rgba(201,168,76,0.4); transform:translateY(-2px); }
-    .book-cover { height:160px; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; }
+    .book-cover { height:160px; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; background-size:cover; background-position:center; }
+    .book-cover svg { width:32px; height:32px; stroke:rgba(201,168,76,0.25); fill:none; stroke-width:1.2; position:relative; z-index:1; }
     .book-cover img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
     .book-cover-placeholder { width:44px; height:60px; border:0.5px solid rgba(201,168,76,0.25); border-radius:2px; display:flex; align-items:center; justify-content:center; }
     .book-cover-placeholder svg { width:20px; height:20px; stroke:rgba(201,168,76,0.3); fill:none; stroke-width:1.5; }
@@ -601,11 +602,12 @@
         return;
       }
       grid.innerHTML = books.map(function(b, i) {
-        var cover = b.coverUrl
-          ? '<img src="'+b.coverUrl+'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" alt="'+b.title+'">'
-          : '<div class="book-cover-placeholder"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>';
+        var coverStyle = b.coverUrl
+          ? 'background-image:url('+b.coverUrl+');background-size:cover;background-position:center;'
+          : '';
+        var placeholder = b.coverUrl ? '' : '<div class="book-cover-placeholder"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>';
         return '<a class="book-card" href="livre.html?book='+b.id+'" data-lang="'+(b.lang||'fr')+'" data-genre="'+(b.genre||'fiction')+'">'
-          +'<div class="book-cover '+covers[i%6]+'" style="position:relative;">'+cover
+          +'<div class="book-cover '+covers[i%6]+'" style="'+coverStyle+'">'+placeholder
           +'<span class="lang-badge">'+(b.lang||'fr').toUpperCase()+'</span></div>'
           +'<div class="book-body"><div class="book-title">'+b.title+'</div>'
           +'<div class="book-meta"><span>Ch. '+(b.chaptersCount||0)+'</span>'

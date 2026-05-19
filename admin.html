@@ -340,7 +340,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import { getFirestore, collection, doc, getDocs, addDoc, deleteDoc, updateDoc, getCountFromServer, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, collection, doc, getDocs, addDoc, setDoc, deleteDoc, updateDoc, getCountFromServer, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
     const firebaseConfig = {
@@ -434,12 +434,14 @@
 
     window._addBook = async (data) => {
       try {
-        const docRef = await addDoc(collection(db, "books"), {
-          ...data,
+        const { id, ...bookData } = data;
+        const bookRef = doc(db, "books", id);
+        await setDoc(bookRef, {
+          ...bookData,
           chaptersCount: 0,
           createdAt: serverTimestamp()
         });
-        _books.push({ id: docRef.id, ...data, chaptersCount: 0 });
+        _books.push({ id, ...bookData, chaptersCount: 0 });
         document.getElementById('stat-books').textContent = _books.length;
         renderAdminBooks();
         updateBookSelect();
