@@ -403,7 +403,7 @@
       }
       list.innerHTML = _books.map((book, i) => `
         <div class="book-item">
-          <div class="book-item-cover ${covers[i % covers.length]}">${bookSvg}</div>
+          <div class="book-item-cover ${covers[i % covers.length]}" style="${book.coverUrl ? 'background-image:url('+book.coverUrl+');background-size:cover;background-position:center;padding:0;' : ''}">${book.coverUrl ? '' : bookSvg}</div>
           <div class="book-item-info">
             <div class="book-item-title">${book.title}</div>
             <div class="book-item-meta">
@@ -573,7 +573,7 @@
       if (!title) { showToast('Le titre est obligatoire.'); return; }
       if (!summary) { showToast('Le résumé est obligatoire.'); return; }
 
-      const id = title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+      const id = doc(collection(db, "books")).id;
 
       // Show loading
       const btn = document.querySelector('.btn-submit');

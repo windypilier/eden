@@ -140,21 +140,20 @@
       </div>
       <div class="book-info">
         <div class="book-genre-tag" id="book-genre-badge">—</div>
-        <h1 class="book-title" id="book-title">La grâce du désert</h1>
-        <div class="book-author" id="book-author">par Windy</div>
+        <h1 class="book-title" id="book-title">Chargement...</h1>
+        <div class="book-author" id="book-author">—</div>
         <div class="book-stats">
           <div class="stat-pill">
             <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-            <span id="book-chapters-count">12 chapitres</span>
+            <span id="book-chapters-count">—</span>
           </div>
           <div class="stat-pill">
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            <span id="book-read-time">~4h de lecture</span>
+            <span id="book-read-time">—</span>
           </div>
         </div>
         <div class="status-badge status-ongoing" id="book-status">
-          <div class="status-dot"></div>
-          En cours de publication
+          <div class="status-dot"></div>—
         </div>
         <div class="reading-progress" id="reading-progress" style="display:none;">
           <div class="prog-row">
@@ -190,11 +189,7 @@
       <div class="section-head">
         <span class="section-title">Résumé</span>
       </div>
-      <div class="resume-text" id="book-summary">
-        Dans les vastes étendues arides d'une foi mise à l'épreuve, Marie découvre que les saisons de sécheresse spirituelle cachent souvent les plus profondes racines de la grâce. À travers des épreuves qui la mènent au bord du gouffre, elle apprend que la confiance en Dieu ne se mesure pas à l'intensité de nos émotions, mais à la fidélité de nos pas — même dans l'obscurité.
-
-        Une histoire de résilience, de foi et de restauration divine qui touchera chaque cœur ayant traversé le désert de l'âme.
-      </div>
+      <div class="resume-text" id="book-summary">—</div>
     </div>
 
     <!-- CHAPITRES -->
@@ -327,11 +322,13 @@
 
         // Cover image
         const coverEl = document.getElementById('book-cover-img');
-        if (b.coverUrl && coverEl) {
-          const langPill = coverEl.querySelector('.lang-pill');
-          const langText = langPill ? langPill.outerHTML : '';
-          coverEl.innerHTML = `<img src="${b.coverUrl}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" alt="${b.title}"/>${langText}`;
-          coverEl.style.position = 'relative';
+        if (coverEl) {
+          if (b.coverUrl) {
+            coverEl.style.backgroundImage = 'url(' + b.coverUrl + ')';
+            coverEl.style.backgroundSize = 'cover';
+            coverEl.style.backgroundPosition = 'center';
+            coverEl.querySelector('.book-cover-placeholder') && (coverEl.querySelector('.book-cover-placeholder').style.display = 'none');
+          }
         }
 
         // Load chapters
