@@ -156,7 +156,7 @@
   <!-- TOP BAR -->
   <div class="top-bar">
     <div class="top-left">
-      <a class="nav-back" id="btn-back" href="#" onclick="prevChapter();return false;"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></a>
+      <a class="nav-back" id="btn-back" href="#" onclick="history.back();return false;"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></a>
       <span class="nav-book-title" id="nav-book-title">Chargement...</span>
     </div>
     <div class="top-right">
@@ -514,6 +514,7 @@
         if (chapSnap.empty) {
           document.getElementById('ch-title').textContent = 'Chapitre introuvable';
           document.getElementById('scroll-content').innerHTML = '<p style="color:rgba(255,255,255,0.3);text-align:center;">Ce chapitre n\'existe pas encore.</p>';
+          document.getElementById('btn-next-ch').style.display = 'none';
           return;
         }
 
