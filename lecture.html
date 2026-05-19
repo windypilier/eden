@@ -156,7 +156,7 @@
   <!-- TOP BAR -->
   <div class="top-bar">
     <div class="top-left">
-      <a class="nav-back" id="btn-back" href="#" onclick="history.back();return false;"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></a>
+      <a class="nav-back" id="btn-back" href="#"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></a>
       <span class="nav-book-title" id="nav-book-title">Chargement...</span>
     </div>
     <div class="top-right">
@@ -195,7 +195,7 @@
       <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
       <span id="label-prev">Chapitre précédent</span>
     </button>
-    <button class="nav-btn btn-next" id="btn-next-ch" onclick="nextChapter()">
+    <button class="nav-btn btn-next" id="btn-next-ch" onclick="nextChapter()" style="display:none;">
       <span id="label-next">Chapitre suivant</span>
       <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
     </button>
@@ -500,6 +500,10 @@
         document.getElementById('scroll-content').innerHTML = '<p style="color:rgba(255,255,255,0.3);text-align:center;">Aucun livre sélectionné.</p>';
         return;
       }
+
+      // Set back link immediately
+      document.getElementById('btn-back').href = 'livre.html?book=' + bookId;
+
       try {
         // Load book title for nav
         const bookSnap = await getDoc(doc(db, 'books', bookId));
@@ -507,7 +511,7 @@
           document.getElementById('nav-book-title').textContent = bookSnap.data().title || '';
         }
 
-        // Load chapter by number
+        // Load current chapter by number
         const chapQ = query(collection(db, 'books', bookId, 'chapters'), where('number', '==', chNum));
         const chapSnap = await getDocs(chapQ);
 
@@ -522,13 +526,17 @@
         document.getElementById('ch-title').textContent = ch.title || '';
         document.title = 'EDEN — ' + (ch.title || 'Lecture');
 
-        // Format content — split by double newline into paragraphs
         const paragraphs = (ch.content || '').split(/\n\n+/).filter(p => p.trim());
-        const html = paragraphs.map((p, i) =>
+        document.getElementById('scroll-content').innerHTML = paragraphs.map((p, i) =>
           `<p${i === 0 ? ' class="drop-cap"' : ''}>${p.trim()}</p>`
-        ).join('');
+        ).join('') || '<p style="color:rgba(255,255,255,0.3);text-align:center;">Contenu vide.</p>';
 
-        document.getElementById('scroll-content').innerHTML = html || '<p style="color:rgba(255,255,255,0.3);text-align:center;">Contenu vide.</p>';
+        // Check if next chapter exists before showing button
+        const nextQ = query(collection(db, 'books', bookId, 'chapters'), where('number', '==', chNum + 1));
+        const nextSnap = await getDocs(nextQ);
+        if (!nextSnap.empty) {
+          document.getElementById('btn-next-ch').style.display = '';
+        }
 
       } catch(e) {
         console.error('loadChapter error:', e);
